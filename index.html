@@ -1,0 +1,1761 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>DB Map</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#003F2D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--green:#003F2D;--green2:#0B6B4E;--paper:#EEF1EE;--ink:#15201C;--muted:#5A6862;--line:#C9D1CC;
+--grey:#7C8A84;--amber:#D98200;--ok:#1E8A4C;--red:#C8261E;--tag:#FFD200}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:Barlow,system-ui,sans-serif;color:var(--ink);background:var(--paper);font-size:16px;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--tag);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.app{display:flex;flex-direction:column;height:100dvh}
+header{background:var(--green);color:#fff;display:flex;align-items:center;gap:8px;padding:8px 10px;min-height:54px;flex:none}
+header h1{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbtn{background:transparent;border:1.5px solid rgba(255,255,255,.55);color:#fff;border-radius:6px;padding:6px 10px;font-weight:600;white-space:nowrap}
+.mapsel{flex:1;min-width:0;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.35);color:#fff;border-radius:6px;padding:6px 8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:19px}
+.mapsel option{color:#000;font-family:Barlow,sans-serif;font-size:16px}
+#saved{font-size:13px;opacity:0;transition:opacity .3s;color:#BFE3D2}
+#saved.on{opacity:1}
+main{flex:1;overflow:auto;position:relative}
+.wrap{max-width:680px;margin:0 auto;padding:14px 14px 40px}
+h2{font-family:'Barlow Condensed',sans-serif;font-size:20px;margin:22px 0 8px;color:var(--green)}
+h3{font-family:'Barlow Condensed',sans-serif;font-size:17px;margin:18px 0 2px;color:var(--green2)}
+.muted{color:var(--muted)}
+.hint{font-size:14px;color:var(--muted);margin:8px 0 0;line-height:1.45}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:2px solid var(--green);background:#fff;color:var(--green);border-radius:6px;padding:9px 14px;font-weight:700;text-decoration:none}
+.btn.primary{background:var(--green);color:#fff}
+.btn.danger{border-color:var(--red);color:var(--red)}
+.btn.armed{background:var(--red);border-color:var(--red);color:#fff}
+.btn.small{padding:5px 10px;font-size:14px}
+.btn.wide{width:100%}
+.btn[disabled]{opacity:.45}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+label.f{display:block;font-size:14px;font-weight:600;color:var(--muted);margin:12px 0 4px}
+input[type=text],input[type=number],input[type=date],input[type=search],select,textarea{width:100%;border:1.5px solid var(--line);border-radius:6px;padding:9px 10px;background:#fff;font-size:16px}
+select[disabled]{background:#F3F5F4;color:var(--muted)}
+textarea{min-height:60px;resize:vertical}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 10px}
+input[type=date]{min-width:0;max-width:100%}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 8px}
+.summary{display:flex;flex-wrap:wrap;gap:6px 14px;font-weight:600;font-size:15px;background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:12px 14px}
+.summary span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:11px;height:11px;border-radius:3px;display:inline-block;flex:none}
+.maps{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.mapcard{background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:6px;text-align:left;display:flex;flex-direction:column;gap:6px}
+.mapcard img{width:100%;height:96px;object-fit:contain;background:#fff;border-radius:4px}
+.mapcard strong{font-size:15px;line-height:1.2}
+.mapcard small{color:var(--muted);font-size:13px}
+.mapcard.add{align-items:center;justify-content:center;border-style:dashed;border-color:var(--green2);color:var(--green);font-weight:700;min-height:150px;text-align:center}
+.wkrow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:1.5px solid var(--line);border-left-width:6px;border-radius:6px;padding:8px 10px;margin-bottom:6px}
+.wkrow b{font-family:'Barlow Condensed';font-size:16px;flex:none;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wkrow span{flex:1;font-size:14px;color:var(--muted);min-width:0}
+.wkrow em{font-style:normal;font-weight:600;font-size:13px;white-space:nowrap}
+
+/* map */
+.vp{position:absolute;inset:0;overflow:auto;display:flex;
+ background-color:#E3E8E4;background-image:linear-gradient(rgba(0,63,45,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(0,63,45,.07) 1px,transparent 1px);background-size:24px 24px}
+.canvas{position:relative;margin:auto;flex:none;box-shadow:0 0 0 1px rgba(0,0,0,.25);background:#fff}
+.canvas img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none;pointer-events:none}
+.canvas.placing{cursor:crosshair}
+.canvas svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.canvas svg .hit{stroke:transparent;stroke-width:18;fill:none;pointer-events:stroke;cursor:pointer}
+.canvas.placing svg .hit{pointer-events:none}
+.canvas svg .cab{fill:none;stroke-width:3.5;stroke-linejoin:round;stroke-linecap:round}
+.canvas svg .cab.sel{stroke-width:6}
+.canvas svg .bond2{fill:none;stroke:#F2C400;stroke-width:3.5;stroke-dasharray:6 6}
+.canvas svg .bond2.sel{stroke-width:6}
+.canvas svg .preview{fill:none;stroke:#000;stroke-width:3;stroke-dasharray:6 4}
+.canvas svg .vtx{fill:#fff;stroke:#000;stroke-width:2}
+.clab{position:absolute;transform:translate(-50%,-50%);font-size:11px;font-weight:700;line-height:1;padding:2px 4px;border-radius:3px;color:#fff;white-space:nowrap;pointer-events:none;z-index:1;box-shadow:0 0 0 1.5px #fff}
+.pin{position:absolute;transform:translate(-50%,-15px);padding:0;border:0;background:none;display:flex;flex-direction:column;align-items:center;z-index:2}
+.unlocked .pin{touch-action:none;cursor:grab}
+.pin .n{min-width:30px;height:30px;padding:0 5px;border-radius:5px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.55),0 2px 4px rgba(0,0,0,.3)}
+.pin .l{margin-top:3px;background:var(--tag);color:#000;border:1.5px solid #000;border-radius:3px;font-size:11px;font-weight:700;line-height:1;padding:2px 4px 1px;white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis}
+.pin .l.none{background:#fff;color:var(--muted);border-style:dashed}
+.pin .r6{position:absolute;top:-7px;right:-9px;background:#fff;color:var(--red);border:1.5px solid var(--red);border-radius:8px;font-size:9px;font-weight:700;padding:1px 3px;line-height:1}
+.pin.sel{z-index:4}
+.pin.sel .n{box-shadow:0 0 0 3px var(--tag),0 0 0 5px #000}
+.pin.drag{z-index:5;opacity:.85}
+.pin.target .n{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--green2)}
+.tools{position:absolute;left:10px;right:10px;bottom:12px;display:flex;justify-content:space-between;gap:8px;pointer-events:none;z-index:5;flex-wrap:wrap}
+.tools>*{pointer-events:auto}
+.tgrp{display:flex;gap:8px}
+.tool{background:var(--green);color:#fff;border:0;border-radius:24px;padding:11px 16px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+.tool.on{background:var(--tag);color:#000;outline:2px solid #000}
+.tool.alt{background:#fff;color:var(--green)}
+.zoom{display:flex;background:#fff;border-radius:24px;box-shadow:0 3px 10px rgba(0,0,0,.25);overflow:hidden}
+.zoom button{border:0;background:#fff;min-width:44px;height:44px;font-weight:700;font-size:18px}
+.zoom button+button{border-left:1px solid var(--line)}
+.banner{position:absolute;top:10px;left:10px;right:10px;z-index:6;background:var(--tag);border:2px solid #000;border-radius:8px;padding:9px 12px;font-weight:600;display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.banner span{flex:1 1 180px;font-size:15px;line-height:1.3}
+.banner button{border:0;background:#000;color:#fff;border-radius:5px;padding:6px 10px;font-weight:600}
+.banner button.go{background:var(--green)}
+.loading{margin:auto;color:var(--muted);font-weight:600}
+.legend{position:absolute;top:10px;right:10px;z-index:4;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12px;font-weight:600;display:flex;flex-direction:column;gap:3px}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i.ln{width:16px;height:4px;border-radius:2px;display:inline-block}
+.legend button{border:0;background:none;padding:2px 0;font-weight:700;color:var(--green2);font-size:13px;text-align:left}
+
+/* sheet */
+.sheet.still{animation:none}
+.sym{position:absolute;transform:translate(-50%,-50%);padding:0;border:0;background:none;z-index:3;line-height:0;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.45))}
+.sym.sel svg{outline:3px solid var(--tag);outline-offset:1px;border-radius:50%}
+.unlocked .sym{touch-action:none;cursor:grab}
+.canvas .sym svg{position:static;width:24px;height:24px;overflow:visible;pointer-events:none}
+.pal{position:absolute;left:8px;right:8px;bottom:68px;z-index:6;background:#fff;border:1.5px solid var(--line);border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,.2);display:flex;gap:4px;overflow-x:auto;padding:6px}
+.pal button{flex:none;border:2px solid transparent;background:#fff;border-radius:8px;padding:4px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600;width:70px;line-height:1.1;text-align:center}
+.pal button.on{border-color:var(--green);background:#E8F5EE}
+.tv-wrap{overflow:auto;border:1.5px solid var(--line);border-radius:8px;background:#FAFBFA;margin-top:10px;max-height:68vh;-webkit-overflow-scrolling:touch}
+.tv{position:absolute;left:0;top:0;transform-origin:0 0}
+.tv svg{position:absolute;left:0;top:0;overflow:visible}
+.tv path{fill:none;stroke:#8FA39A;stroke-width:2}
+.tn{position:absolute;width:150px;height:58px;display:flex;align-items:stretch;background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:0;text-align:left;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.tn i{width:7px;flex:none}
+.tn span{padding:5px 8px;font-size:12px;line-height:1.25;overflow:hidden;color:var(--muted)}
+.tn span em{font-style:normal;color:var(--amber);font-weight:600}
+.tn b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+.tn.root{background:var(--green);border-color:var(--green)}
+.tn.root span{color:#BFE3D2}.tn.root b{color:#fff}
+.sitebar{font-size:14px;color:var(--muted);margin:0 0 10px}
+#printwrap{display:none}
+@media print{body.printing .app,body.printing #ovl,body.printing #toastbox{display:none!important}body.printing #printwrap{display:grid;grid-template-columns:1fr 1fr;gap:6mm}body.printing #printwrap img{width:100%;break-inside:avoid}body.printing #printwrap.rep{display:block}}
+.savebtn.dirty{background:var(--tag);color:#000;border-color:var(--tag)}
+.tog{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;margin-top:12px}
+.tog input{width:20px;height:20px;accent-color:var(--green)}
+.chg{display:inline-block;background:#FFF4D6;color:#8A5300;border:1px solid var(--amber);border-radius:4px;font-size:11px;font-weight:700;padding:0 4px;margin-left:4px;vertical-align:middle}
+.who{background:#fff;border:1.5px solid var(--line);border-left:6px solid var(--grey);border-radius:8px;padding:9px 11px;margin-bottom:8px}
+.who b{font-size:16px}
+.who .meta{font-size:14px;color:var(--muted);line-height:1.4;margin:2px 0 6px}
+.prow{background:#fff;border:1.5px solid var(--line);border-radius:6px;padding:8px 10px;margin-bottom:6px}
+.prow .t{font-size:14px;line-height:1.35;margin-bottom:6px}
+.prow select{padding:6px 8px;font-size:15px}
+.remc{background:#fff;border:1.5px solid var(--line);border-left:6px solid var(--grey);border-radius:8px;padding:9px 11px;margin-bottom:8px;font-size:14px;line-height:1.45}
+.remc .top{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.remc .code{font-family:'Barlow Condensed';font-weight:700;font-size:18px;color:#fff;border-radius:4px;padding:0 6px;flex:none}
+.remc .top select{flex:1;padding:6px 8px}
+.remc .lnk{border:0;background:none;padding:0;color:var(--green2);font-weight:700;text-align:left;font-size:15px}
+.remc details{margin-top:6px;border-top:1px solid #E4E9E5;padding-top:4px}
+.mailrow{display:flex;gap:6px;margin-top:6px}
+.remind{background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;margin:12px 0}
+.mailrow input{flex:1}
+.pg{font-size:13px;font-weight:600;color:var(--muted);margin:8px 0 2px}
+.venue{margin:18px 0 8px;padding-bottom:2px;border-bottom:2px solid var(--green)}
+.venue h3{margin:0 0 2px;color:var(--green);font-size:18px}
+.venue .sub{font-size:13px;color:var(--muted)}
+.vbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:6px 0 10px}
+.vbar .sel{font-size:13px;font-weight:600;color:var(--muted);margin-right:auto}
+.vbar a,.vbar button.lnk2{border:0;background:none;color:var(--green2);font-weight:700;font-size:13px;padding:4px 0}
+.remc .top label{display:flex;align-items:center;gap:6px;font-size:0}
+.remc .top input[type=checkbox]{width:19px;height:19px;accent-color:var(--green)}
+.remc summary{cursor:pointer;font-weight:700;color:var(--green);padding:4px 0}
+.tree,.tree ul{list-style:none;margin:0;padding:0}
+.tree ul{margin-left:14px;padding-left:14px;border-left:2px solid var(--line)}
+.tree li{position:relative;margin:6px 0}
+.tree ul>li::before{content:'';position:absolute;left:-14px;top:22px;width:14px;border-top:2px solid var(--line)}
+.node{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:6px;padding:7px 9px;font-size:14px;line-height:1.3}
+.node .dot{width:12px;height:12px}
+.node b{font-size:15px}
+.node small{display:block;color:var(--muted)}
+.node.root{background:var(--green);color:#fff;border-color:var(--green)}
+.node.root small{color:#BFE3D2}
+.airow{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #E4E9E5;font-size:14px;line-height:1.35}
+.airow input{width:20px;height:20px;flex:none;margin-top:2px;accent-color:var(--green)}
+
+.sheet.cable{max-height:56%}
+.vh{position:absolute;width:26px;height:26px;transform:translate(-50%,-50%);border-radius:50%;background:#fff;border:3px solid #000;touch-action:none;z-index:7;padding:0;cursor:move;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.vh.drag{background:var(--tag)}
+.eng{background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.eng b{font-size:17px}
+.eng .meta{font-size:14px;color:var(--muted);line-height:1.5;margin:2px 0 8px;word-break:break-word}
+.actions{display:flex;flex-wrap:wrap;gap:6px}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:72%;background:#fff;border-top:3px solid var(--green);border-radius:14px 14px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.2);z-index:10;display:flex;flex-direction:column;animation:up .2s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+.shead{display:flex;align-items:center;gap:10px;padding:12px 14px 8px}
+.bign{min-width:40px;height:40px;padding:0 6px;border-radius:6px;color:#fff;font-family:'Barlow Condensed';font-weight:700;font-size:22px;display:flex;align-items:center;justify-content:center;flex:none}
+.shead .st{flex:1;min-width:0;font-size:14px;line-height:1.3}
+.shead .st b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.close{border:0;background:var(--paper);border-radius:6px;padding:7px 11px;font-weight:600}
+.tabs{display:flex;border-bottom:1.5px solid var(--line);padding:0 4px}
+.tabs button{flex:1;border:0;background:none;padding:10px 2px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1.5px;font-size:15px}
+.tabs button.on{color:var(--green);border-bottom-color:var(--green)}
+.sbody{overflow:auto;padding:4px 14px 26px}
+.card{background:var(--paper);border-radius:8px;padding:10px 12px;margin-top:12px;font-size:14px;line-height:1.5}
+.card b{font-size:15px}
+.fld{display:grid;grid-template-columns:1fr 150px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid #E4E9E5}
+.fld span{font-size:15px;line-height:1.25}
+.fld select,.fld input{padding:7px 8px}
+select.bad{border-color:var(--red);background:#FDECEA;color:var(--red);font-weight:600}
+select.good{border-color:var(--ok);background:#E8F5EE}
+.res{display:block;width:100%;text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:6px;padding:7px 10px;margin-top:6px;font-size:14px}
+.res b{font-size:15px}
+.photos{display:flex;gap:8px;overflow-x:auto;padding:10px 0 4px}
+.photos button.ph{flex:none;width:110px;height:82px;border:1.5px solid var(--line);border-radius:6px;padding:0;overflow:hidden;background:#fff}
+.photos button.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.photos label{flex:none;width:110px;height:82px;border:2px dashed var(--green2);border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:700;color:var(--green);font-size:14px;cursor:pointer;padding:6px}
+.item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:6px;padding:8px 10px;margin-top:6px}
+.item .sw{width:8px;align-self:stretch;border-radius:3px;flex:none}
+.item span{flex:1;font-size:14px;line-height:1.35;min-width:0}
+.item span b{font-size:15px}
+.item em{font-style:normal;font-size:13px;color:var(--muted);white-space:nowrap}
+.edit{border:1.5px solid var(--green2);border-radius:8px;padding:4px 12px 12px;margin-top:8px;background:#F7FAF8}
+.rem{border:1.5px solid var(--line);border-left:6px solid var(--grey);border-radius:8px;padding:4px 10px 10px;margin-top:10px;background:#fff}
+.diag{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #E4E9E5}
+.diag .th{width:64px;height:48px;border:1px solid var(--line);border-radius:4px;object-fit:cover;flex:none;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--red);background:#fff}
+.diag span{flex:1;font-size:15px;word-break:break-word}
+.ov{position:fixed;inset:0;z-index:30;background:var(--paper);display:flex;flex-direction:column}
+.ov.dark{background:#1a1f1d}
+.ov .body{flex:1;overflow:auto}
+.viewer{flex:1;overflow:auto;display:flex}
+.viewer img{margin:auto;max-width:100%;display:block;background:#fff}
+.viewer img.full{max-width:none}
+.viewer object{width:100%;height:100%;border:0;background:#fff}
+.lrow{display:flex;align-items:center;gap:10px;width:100%;background:#fff;border:1.5px solid var(--line);border-radius:6px;padding:8px 10px;margin-bottom:6px;text-align:left}
+.lrow .bign{min-width:34px;height:34px;font-size:18px;flex:none}
+.lrow span{flex:1;font-size:14px;min-width:0}
+.lrow small{display:block;color:var(--muted)}
+.calrow{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--line);border-radius:6px;padding:8px 10px;margin-bottom:6px}
+.calrow span{flex:1;font-size:14px}
+.calrow a{font-weight:700;color:var(--green);font-size:14px;white-space:nowrap}
+.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-weight:600;z-index:50;box-shadow:0 4px 14px rgba(0,0,0,.3);max-width:90vw;text-align:center}
+.warn{background:#FFF4D6;border:1.5px solid var(--amber);border-radius:6px;padding:8px 10px;font-size:14px;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="app"><header id="hdr"></header><main id="main"><div class="wrap"><p class="muted">Loading…</p></div></main></div>
+<div id="ovl"></div><div id="toastbox"></div>
+<script>
+let BUILTIN=[];
+let SCHED=null;
+const DEFAULT_SITE='';
+</script>
+<script>
+/* ============ reference data ============ */
+let ENG=[],BLD=[],WEEKS={},SCHED_DBS=[];
+function loadSchedule(sc){SCHED=sc&&sc.r?sc:{b:[],e:[],w:{},r:[]};ENG=SCHED.e.filter(Boolean);BLD=SCHED.b;WEEKS=SCHED.w||{};
+  SCHED_DBS=SCHED.r.map(r=>{const parts=String(r[1]).split(/\s{2,}/);return{asset:r[0],name:r[1],ref:parts[parts.length-1],building:BLD[r[2]],floor:r[3],room:r[4],engineer:SCHED.e[r[5]]||'',wk:r[6]}})}
+loadSchedule(SCHED);
+let DBS=[], BY_ASSET={};
+function rebuildDbs(){const ov=data.engOverride||{},wo=data.weekOverride||{},ed=data.dbEdits||{};
+  DBS=[...SCHED_DBS,...(data.customDbs||[])].map(d=>{if(ed[d.asset]&&!d.custom)d={...d,...ed[d.asset],edited:true};const e=ov[d.asset],w=wo[d.asset];if(e===undefined&&w===undefined)return d;
+    return{...d,engineer:e!==undefined?e:d.engineer,wk:w!==undefined?w:d.wk,changed:(e!==undefined&&e!==d.engineer)||(w!==undefined&&w!==d.wk)}});
+  BY_ASSET=Object.fromEntries(DBS.map(d=>[d.asset,d]))}
+const engId=n=>'eng_'+String(n).toLowerCase().replace(/[^a-z0-9]+/g,'_');
+const EPAL=['#1565C0','#C2185B','#00897B','#EF6C00','#5E35B1','#6D4C41','#0097A7','#7CB342','#AD1457','#455A64'];
+const engColor=n=>{const i=engNames().indexOf(n);return i<0?'#9AA5A0':EPAL[i%EPAL.length]};
+const REM_STATUS=['Open','Quoted','Approved','Completed'];
+const REM_COL={Open:'var(--red)',Quoted:'var(--amber)',Approved:'#1565C0',Completed:'var(--ok)'};
+function parentOf(a){return (data.parents||{})[a]||''}
+function childrenOf(a){return Object.keys(data.parents||{}).filter(k=>data.parents[k]===a)}
+function isDesc(anc,node){let n=node,guard=0;while(n&&guard++<500){n=parentOf(n);if(n===anc)return true}return false}
+const engNames=()=>[...(data.engineers||[])].sort((a,b)=>(a.o??1e9)-(b.o??1e9)).map(e=>e.name);
+const engByName=n=>(data.engineers||[]).find(e=>e.name===n);
+const engOpts=(sel,blank)=>{const names=engNames();if(sel&&!names.includes(sel))names.push(sel);return opts(names,sel,blank)};
+
+const OK=['OK','Not OK','N/A'], YN=['Yes','No','N/A'];
+const IR=['>999','>500','>299','>200','>100','>50','>20','>10','>2','1 – 2','<1 (fail)','Not tested'];
+const CODES=[['C1','C1 – Danger present'],['C2','C2 – Potentially dangerous'],['C3','C3 – Improvement recommended'],['FI','FI – Further investigation']];
+const FAULTS=['None',...CODES.map(c=>c[1])];
+const ACTIONS=['Completed on site','Quote required','Parts on order','Isolated and made safe','Referred to supervisor','Monitor at next inspection'];
+const RCD6=['Pass','Fail','N/A – no RCD'];
+const FIELDS=[
+ {k:'N',g:'Visual',l:'External enclosure OK',o:OK},{k:'O',l:'Internal clean OK',o:OK},{k:'P',l:'Cable entries OK',o:OK},
+ {k:'Q',l:'Wiring / insulation OK',o:OK},{k:'R',l:'Busbars OK',o:OK},{k:'S',l:'Labelling / schedule OK',o:OK},
+ {k:'T',g:'Electrical',l:'Connections tightened',o:YN},{k:'U',l:'IR test (MΩ)',o:IR},{k:'V',l:'Earth continuity OK',o:OK},
+ {k:'W',l:'RCD/RCBO test OK',o:OK},{k:'X',l:'Thermal imaging OK',o:OK},{k:'Y',l:'Load current (A)',t:'text',ph:'e.g. 12 or 12/15/9'},
+ {k:'Z',l:'Voltage check OK',o:OK},
+ {k:'AA',g:'Component',l:'Circuit breakers OK',o:OK},{k:'AB',l:'Protective devices OK',o:OK},{k:'AC',l:'Earthing system OK',o:OK},
+ {k:'AF',g:'Documentation',l:'Engineer sign-off',eng:true},
+];
+const HEADERS_AF=['Wk','W/C (Mon)','W/E (Fri)','Engineer','Asset Code','DB Name','Building','Floor','Room','Phase','Voltage','Safe Isolation Confirmed','PPE Worn',
+ 'External Enclosure OK','Internal Clean OK','Cable Entries OK','Wiring / Insulation OK','Busbars OK','Labelling / Schedule OK','Connections Tightened','IR Test (MΩ)','Earth Continuity OK','RCD/RCBO Test OK','Thermal Imaging OK','Load Current (A)','Voltage Check OK','Circuit Breakers OK','Protective Devices OK','Earthing System OK','Faults Found','Remedial Actions','Engineer Sign-off'];
+const COLS_NAF=['N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF'];
+
+/* Regulation references: BS 7671:2018 numbering. Check against the current amendment before issuing. */
+const REGS=[
+ ['132.12','Equipment not accessible for operation, inspection or maintenance'],
+ ['134.1.1','Poor workmanship or unsuitable materials'],
+ ['411.3.1.1','Exposed-conductive-part not connected to protective conductor'],
+ ['411.3.1.2','Protective equipotential bonding missing or inadequate'],
+ ['411.3.2','Disconnection time not met (Zs too high)'],
+ ['411.3.3','No 30 mA RCD on socket-outlets up to 32 A'],
+ ['411.3.4','No RCD on domestic lighting circuits'],
+ ['416.2.1','Enclosure below IPXXB / IP2X (missing blanks, open ways)'],
+ ['416.2.2','Top of enclosure below IPXXD / IP4X'],
+ ['421.1.201','Domestic consumer unit not non-combustible'],
+ ['433.1','Overload device not coordinated with cable'],
+ ['434.5.1','Breaking capacity below prospective fault current'],
+ ['512.2','Equipment unsuitable for external influences (IP rating)'],
+ ['514.9.1','Circuit chart missing or out of date'],
+ ['514.11.1','No warning where more than one supply'],
+ ['514.12.1','Periodic inspection notice missing'],
+ ['514.12.2','RCD test notice missing'],
+ ['514.13.1','Earthing or bonding label missing'],
+ ['514.14.1','Mixed wiring colours notice missing'],
+ ['522.6.202','Concealed cables in wall without RCD or earthed covering'],
+ ['522.8.1','Cable damaged or exposed to mechanical damage'],
+ ['526.1','Loose or poor connection'],
+ ['526.5','Connections not enclosed'],
+ ['527.2.1','Fire-stopping missing at penetration'],
+ ['537.2','Isolation device missing or unsuitable'],
+ ['543.1.1','Protective conductor undersized'],
+ ['544.1.1','Main bonding conductor undersized'],
+ ['643.3','Insulation resistance below Table 64 minimum'],
+];
+const CTYPES=[['lighting','Lighting','#1565C0'],['power','Power','#C8261E'],['bonding','Bonding / earthing','#2E7D32'],['submain','Sub-main / feed','#6A1B9A'],['emergency','Emergency lighting','#E07B00'],['other','Other','#455A64']];
+const CT=Object.fromEntries(CTYPES.map(([k,l,c])=>[k,{l,c}]));
+const CABLES=['6242Y twin & earth','6243Y 3-core & earth','SWA 2-core','SWA 3-core','SWA 4-core','SWA 5-core','LSZH singles (6491B)','FP200 / fire resistant','MICC mineral insulated','H07RN-F flex','SY / CY control','Green/yellow single (bonding)','Other'];
+const SIZES=['1.0','1.5','2.5','4','6','10','16','25','35','50','70','95','120','150','185','240'];
+const DEVICES=['MCB','RCBO','MCCB','BS 88 fuse','BS 1361 fuse','BS 3036 rewireable','Isolator / switch','Spare'];
+const CURVES=['B','C','D','–'];
+const RATINGS=['3','5','6','10','13','16','20','25','32','40','45','50','63','80','100','125','160','200','250'];
+const RCDS=['30 mA RCBO','Via 30 mA RCD','Via 100 mA RCD','Via 300 mA RCD','None'];
+const POWERS=['Sockets – ring','Sockets – radial','Lighting','Emergency lighting','Cooker','Water heater','Hand dryers','Extract fan','Air conditioning','Fire alarm panel','Sub-DB','Main bonding – water','Main bonding – gas','Supplementary bonding','Kitchen equipment','External lighting','Signage','Door access','Data cabinet'];
+
+/* ============ storage ============ */
+const KEY='dbmap:data', KIMG='dbmap:img:', KFILE='dbmap:diag:';
+const inClaude=!!(window.storage&&window.storage.get), mem={};
+const idb=(!inClaude&&window.indexedDB)?new Promise(res=>{const r=indexedDB.open('dbmap',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>res(null)}):Promise.resolve(null);
+const hasStore=inClaude||!!window.indexedDB;
+function idbDo(mode,fn){return idb.then(db=>db?new Promise((res,rej)=>{const t=db.transaction('kv',mode),st=t.objectStore('kv'),q=fn(st);t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error)}):null)}
+async function sget(k){if(inClaude){try{const r=await window.storage.get(k,false);return r?r.value:null}catch(e){return null}}try{const db=await idb;if(db){const v=await idbDo('readonly',st=>st.get(k));return v??null}}catch(e){}return mem[k]??null}
+async function sset(k,v){if(inClaude){try{return !!(await window.storage.set(k,v,false))}catch(e){console.error(e);return false}}try{const db=await idb;if(db){await idbDo('readwrite',st=>st.put(v,k));return true}}catch(e){console.error(e);return false}mem[k]=v;return true}
+async function sdel(k){if(inClaude){try{await window.storage.delete(k,false)}catch(e){}return}try{const db=await idb;if(db){await idbDo('readwrite',st=>st.delete(k));return}}catch(e){}delete mem[k]}
+let data={maps:{},custom:[],customDbs:[],engineers:[],engOverride:{},weekOverride:{},parents:{},dbEdits:{},mapBuilding:{},site:{},kvu:{},tomb:{},settings:{autosave:true}};
+let CLOUD=null,SYNC={busy:false,last:0,err:'',t:null},PENDING=[],SNAP=null;
+let saveT=null,dirty=false;
+const SB=()=>`<button class="hbtn savebtn" onclick="saveNow()">Saved</button>`;
+function updateSaveBtn(){const t=dirty?'Save':CLOUD?(SYNC.busy?'Syncing…':SYNC.err?'Offline':'Synced'):'Saved';document.querySelectorAll('.savebtn').forEach(b=>{b.classList.toggle('dirty',dirty||(!!CLOUD&&!!SYNC.err));b.textContent=t;b.setAttribute('aria-label',dirty?'Save changes':t)})}
+function scheduleSave(){dirty=true;updateSaveBtn();if((data.settings||{}).autosave!==false){clearTimeout(saveT);saveT=setTimeout(saveData,600)}}
+async function saveNow(){clearTimeout(saveT);const ok=await saveData();if(CLOUD){clearTimeout(SYNC.t);await syncNow(true);toast(SYNC.err?'Saved on this device. Sync failed: '+SYNC.err:'Saved and synced')}else toast(ok?'All changes saved':'Not saved. Try again.')}
+function setAuto(v){data.settings=data.settings||{};data.settings.autosave=v;saveData();toast(v?'Auto-save on':'Auto-save off. Tap Save to keep changes.')}
+window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
+async function saveData(){stampChanges();const ok=await sset(KEY,JSON.stringify(data));if(ok)dirty=false;updateSaveBtn();if(!ok)toast('Could not save on this device.');if(ok&&CLOUD)schedulePush();return ok}
+
+/* ============ helpers ============ */
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const today=()=>ymd(new Date());
+const toD=s=>new Date(s+'T00:00');
+function addMonths(s,n){const[y,m,d]=s.split('-').map(Number);const dt=new Date(y,m-1+n,1);dt.setDate(Math.min(d,new Date(dt.getFullYear(),dt.getMonth()+1,0).getDate()));return ymd(dt)}
+const daysTo=s=>Math.round((toD(s)-toD(today()))/864e5);
+const fmt=s=>s?toD(s).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'';
+const plural=(n,w)=>n+' '+w+(n===1?'':'s');
+const opt=(v,l,sel)=>`<option value="${esc(v)}"${String(v)===String(sel??'')?' selected':''}>${esc(l)}</option>`;
+const opts=(list,sel,blank='–')=>(blank!==null?opt('',blank,sel):'')+list.map(o=>Array.isArray(o)?opt(o[0],o[1],sel):opt(o,o,sel)).join('');
+function toast(m){const b=document.getElementById('toastbox');b.innerHTML=`<div class="toast" role="status">${esc(m)}</div>`;clearTimeout(toast.t);toast.t=setTimeout(()=>b.innerHTML='',2600)}
+function armed(btn,fn,label='Tap again to delete'){if(btn.dataset.armed){fn();return}const t=btn.textContent;btn.dataset.armed=1;btn.classList.add('armed');btn.textContent=label;setTimeout(()=>{if(btn.isConnected){delete btn.dataset.armed;btn.classList.remove('armed');btn.textContent=t}},3000)}
+function readFile(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);r.readAsDataURL(f)})}
+function loadImg(src){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src})}
+async function compressImage(src,maxDim,q){const img=await loadImg(src);const sc=Math.min(1,maxDim/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);let out=c.toDataURL('image/jpeg',q);while(out.length>4.4e6&&q>.35){q-=.1;out=c.toDataURL('image/jpeg',q)}return{data:out,w:c.width,h:c.height}}
+function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();a.remove()}
+
+/* ============ model ============ */
+const allMaps=()=>[...BUILTIN,...data.custom.filter(c=>!BUILTIN.some(b=>b.id===c.id))];
+const getMap=id=>allMaps().find(m=>m.id===id);
+function meta(id){return data.maps[id]||(data.maps[id]={pins:[],symbols:[]})}
+const pinsOf=id=>meta(id).pins;
+const buildingOf=m=>{const v=(data.mapBuilding||{})[m.id];return v!==undefined?v:(m.building||'')};
+const bKey=m=>buildingOf(m)||m.name;
+const curMap=()=>getMap(S.mapId);
+const curPin=()=>pinsOf(S.mapId).find(p=>p.id===S.pinId);
+function normPin(p){p.checks=p.checks||{};p.diagrams=p.diagrams||[];p.photos=p.photos||[];p.circuits=p.circuits||[];p.cables=p.cables||[];p.remedials=p.remedials||[];return p}
+function placed(){const m={};for(const mp of allMaps())for(const p of pinsOf(mp.id))if(p.asset)m[p.asset]={map:mp,pin:p};return m}
+const openRems=p=>(p.remedials||[]).filter(r=>r.status!=='Completed');
+function worstCode(p){const order=['C1','C2','FI','C3'];const cs=openRems(p).map(r=>r.code).filter(Boolean);for(const c of order)if(cs.includes(c))return c;return ''}
+function isBad(f,v){return !!v&&(v==='Not OK'||(f.o===YN&&v==='No')||v==='<1 (fail)'||v==='Fail'||(f.k==='AD'&&v!=='None'&&!v.startsWith('C3')))}
+const isGood=(f,v)=>!!v&&!isBad(f,v)&&v!=='Not tested';
+function rcdDue(p){const c=p.checks||{};if(!c.RCD6date||c.RCD6==='N/A – no RCD')return null;const next=addMonths(c.RCD6date,6);return{next,days:daysTo(next)}}
+function pinStatus(p){
+  const c=p.checks||{};const filled=FIELDS.filter(f=>c[f.k]);
+  const bad=filled.some(f=>isBad(f,c[f.k]))||c.RCD6==='Fail'||['C1','C2','FI'].includes(worstCode(p));
+  if(bad)return{k:'fault',c:'var(--red)',l:'Fault recorded'};
+  if(c.AF)return{k:'done',c:'var(--ok)',l:'Signed off by '+c.AF};
+  if(filled.length)return{k:'prog',c:'var(--amber)',l:`In progress, ${filled.length} of ${FIELDS.length} filled`};
+  return{k:'todo',c:'var(--grey)',l:p.asset?'Not started':'No board linked yet'};
+}
+function circuitLabel(ci){return `${ci.no?('C'+ci.no):'Circuit'}${ci.desc?' '+ci.desc:''}`}
+function remSummary(p){const rs=p.remedials||[];if(!rs.length)return (p.checks||{}).AEnotes||'';return rs.map(r=>[r.code,r.reg==='Other'?r.regOther:r.reg,r.obs,r.action,r.status==='Completed'?'(completed)':''].filter(Boolean).join(' – ')).join('; ')}
+
+/* ============ state ============ */
+const S={remSel:new Set(),sym:null,symCable:null,symSteps:[],symSel:null,lastSym:'light',lastTap:null,treeZ:1,view2:'',pinColour:'status',planWk:null,offEng:null,remF:'open',remQ:'',treeB:null,ai:null,adjust:null,editEng:null,view:'home',mapId:null,pinId:null,cableId:null,tab:'board',place:false,pendingAsset:'',locked:true,zoom:1,minZ:1,eng:'',search:'',editCircuit:null,draw:null,showCables:true,calEng:''};
+const imgCache={};
+const header=h=>{document.getElementById('hdr').innerHTML=h;updateSaveBtn()};
+
+/* ============ home ============ */
+function currentWeek(){const t=new Date();let best=null;for(const [wk,w] of Object.entries(WEEKS)){if(toD(w[2])<=t)best=+wk}return best||1}
+function renderHome(){
+  S.view='home';
+  header(`<h1>DB Map</h1>${SB()}`);
+  if(!allMaps().length&&!SCHED_DBS.length){document.getElementById('main').innerHTML=`<div class="wrap"><h2 style="margin-top:6px">Set up ${esc(siteName()||'your site')}</h2>
+    <div class="card" style="font-size:15px">To start, connect to your team's backend, or import a site pack. You can also upload site maps and a DB schedule spreadsheet yourself.</div>
+    <div class="row" style="margin-top:12px"><button class="btn primary" onclick="openSite()">Site settings</button><label class="btn">Upload a map<input type="file" accept="image/*" hidden onchange="pickMap(this)"></label>${installEvt?'<button class="btn" onclick="installApp()">Install app</button>':''}</div></div>`;return}
+  const pl=placed(),allPins=allMaps().flatMap(m=>pinsOf(m.id).map(p=>({m,p})));
+  const cnt=k=>allPins.filter(x=>pinStatus(x.p).k===k).length;
+  const rcd=allPins.map(x=>({...x,r:rcdDue(x.p)})).filter(x=>x.r&&x.r.days<=30).sort((a,b)=>a.r.days-b.r.days);
+  const wk=currentWeek(),wkDbs=DBS.filter(d=>d.wk===wk&&(!S.eng||d.engineer===S.eng)),nOpen=allRems().filter(x=>x.r.status!=='Completed').length;
+  let h=`<div class="wrap"><p class="sitebar">${esc(siteName())}${CLOUD?(SYNC.err?', offline, changes will sync later':', shared with the team'):', saved on this device'}</p>`;
+  if(!hasStore)h+=`<div class="warn">Saving isn't available here, so changes will be lost when you close this page.</div>`;
+  h+=`<div class="summary"><span>${plural(allPins.length,'board')} placed</span>
+   <span><i class="dot" style="background:var(--ok)"></i>${cnt('done')} signed off</span>
+   <span><i class="dot" style="background:var(--amber)"></i>${cnt('prog')} in progress</span>
+   <span><i class="dot" style="background:var(--red)"></i>${cnt('fault')} with faults</span></div>
+   <div class="row" style="margin-top:10px"><button class="btn primary" onclick="openReport()">Report</button><button class="btn" onclick="openPlan()">Schedule</button><button class="btn" onclick="openRemedials()">Remedials${nOpen?' ('+nOpen+')':''}</button><button class="btn" onclick="openTree()">Board tree</button><button class="btn" onclick="openTeam()">Engineers</button><button class="btn" onclick="openCalendar()">Reminders</button><button class="btn" onclick="openExport()">Export</button><button class="btn" onclick="openScanner()">Scan QR</button><button class="btn" onclick="openSite()">Site settings</button>${installEvt?'<button class="btn primary" onclick="installApp()">Install app</button>':''}</div>
+   <label class="tog"><input type="checkbox" ${(data.settings||{}).autosave!==false?'checked':''} onchange="setAuto(this.checked)"> Auto-save changes</label>`;
+  if(rcd.length)h+=`<h2>RCD 6-monthly tests due</h2>`+rcd.map(x=>`<button class="wkrow" style="border-left-color:${x.r.days<0?'var(--red)':'var(--amber)'}" onclick="openMap('${x.m.id}','${x.p.id}','checks')"><b>${esc(BY_ASSET[x.p.asset]?.ref||'Pin '+x.p.num)}</b><span>${esc(x.m.name)}</span><em>${x.r.days<0?'Overdue by '+plural(-x.r.days,'day'):x.r.days===0?'Due today':'Due in '+plural(x.r.days,'day')}</em></button>`).join('');
+  h+='<h2>Site maps</h2><div class="maps">'+allMaps().map(m=>{const ps=pinsOf(m.id),f=ps.filter(p=>pinStatus(p).k==='fault').length;
+    return `<button class="mapcard" onclick="openMap('${m.id}')"><img src="${m.thumb||m.src||''}" alt="" loading="lazy"><strong>${esc(m.name)}</strong><small>${ps.length?plural(ps.length,'board'):'No boards yet'}${f?', '+f+' with faults':''}</small></button>`}).join('')
+    +`<label class="mapcard add">+ Upload a new map<input type="file" accept="image/*" hidden onchange="pickMap(this)"></label></div>`;
+  const [wc,we]=WEEKS[wk]||['',''];
+  if(!Object.keys(WEEKS).length){document.getElementById('main').innerHTML=h+'</div>';return}
+  h+=`<h2>Week ${wk} boards, ${esc(wc)} to ${esc(we)}</h2>
+   <select onchange="S.eng=this.value;renderHome()" aria-label="Filter by engineer">${opt('','All engineers',S.eng)}${engNames().map(e=>opt(e,e,S.eng)).join('')}</select><div style="margin-top:8px">`;
+  h+=wkDbs.map(d=>{const at=pl[d.asset];const st=at?pinStatus(at.pin):null;
+    return `<button class="wkrow" style="border-left-color:${st?st.c:'var(--line)'}" onclick="${at?`openMap('${at.map.id}','${at.pin.id}')`:`toast('Not on a map yet. Open its map and add a pin.')`}"><b>${esc(d.ref)}</b><span>${esc(d.building)}, ${esc(d.room)}<br>${esc(d.engineer||'Unassigned')}${d.changed?'<span class="chg">Changed</span>':''}</span><em>${st?esc(st.k==='todo'?'Placed':st.l.split(',')[0]):'Not placed'}</em></button>`}).join('')||'<p class="hint">No boards scheduled for this filter.</p>';
+  h+='</div></div>';
+  document.getElementById('main').innerHTML=h;
+}
+async function pickMap(inp){
+  const f=inp.files[0];if(!f)return;toast('Preparing map…');
+  try{const raw=await readFile(f),big=await compressImage(raw,2400,.88),th=await compressImage(raw,300,.7);
+    const id='c'+uid();if(!await sset(KIMG+id,big.data)){toast('Map is too large to save. Try a smaller image.');return}
+    imgCache[id]=big.data;queueUpload(KIMG+id,'map_'+id);data.custom.push({id,name:f.name.replace(/\.[^.]+$/,''),building:'',w:big.w,h:big.h,thumb:th.data});
+    await saveData();openMap(id);setTimeout(()=>{openList();toast('Name the map and choose its building')},400);
+  }catch(e){toast('That file couldn\'t be read as an image.')}
+}
+
+/* ============ export ============ */
+function exportRows(){
+  const rows=[[...HEADERS_AF,'RCD 6-monthly test','RCD test date','RCD next due','Map','Pin','Check date','Circuits','Cables','Photos','Notes','Fed from','Schedule changed']];
+  for(const m of allMaps())for(const p0 of [...pinsOf(m.id)].sort((a,b)=>a.num-b.num)){
+    const p=normPin(p0),d=BY_ASSET[p.asset]||{},c=p.checks,w=WEEKS[d.wk]||['',''],r=rcdDue(p);
+    const vals={...c,AD:p.remedials.length?(CODES.find(x=>x[0]===worstCode(p))?.[1]||'None'):c.AD,AE:remSummary(p)};
+    rows.push([d.wk||'',w[0],w[1],d.engineer||'',d.custom?'':(p.asset||''),d.name||'',d.building||buildingOf(m),d.floor||'',d.room||'','','','','',...COLS_NAF.map(k=>vals[k]||''),c.RCD6||'',c.RCD6date||'',r?r.next:'',m.name,p.num,c.date||'',p.circuits.length,p.cables.length,p.photos.length,p.notes||'',parentOf(p.asset)==='SUPPLY'?'Incoming supply':(BY_ASSET[parentOf(p.asset)]||{}).ref||'',d.changed?'Yes':'']);
+  }
+  return rows;
+}
+function circuitRows(){
+  const rows=[['Map','Pin','DB ref','Asset Code','Circuit','Description','Type','Device','Curve','Rating (A)','RCD','Cable','Size (mm²)']];
+  for(const m of allMaps())for(const p of pinsOf(m.id)){const d=BY_ASSET[p.asset]||{};for(const ci of p.circuits||[])rows.push([m.name,p.num,d.ref||'',d.custom?'':(p.asset||''),ci.no,ci.desc,CT[ci.type]?.l||'',ci.device,ci.curve,ci.rating,ci.rcd,ci.cable,ci.size])}
+  return rows;
+}
+const toCsv=rows=>'\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');
+const toTsv=rows=>rows.map(r=>r.map(v=>String(v??'').replace(/[\t\n]/g,' ')).join('\t')).join('\n');
+function openExport(){
+  const n=exportRows().length-1,nc=circuitRows().length-1;
+  document.getElementById('ovl').innerHTML=`<div class="ov"><header><button class="hbtn" onclick="closeOv()">‹ Back</button><h1>Export</h1></header><div class="body"><div class="wrap">
+  <h2>Board checks</h2><p>${plural(n,'board')}. Columns A to AF match the Engineer Assignments sheet. Remedial Actions lists every remedial with its code and regulation. RCD 6-monthly results, map and pin details follow after AF.</p>
+  <div class="row"><button class="btn primary" onclick="download('db-checks-'+today()+'.csv',toCsv(exportRows()),'text/csv');toast('CSV downloaded')" ${n?'':'disabled'}>Download CSV</button><button class="btn" onclick="copyRows(exportRows())" ${n?'':'disabled'}>Copy for Excel</button></div>
+  <h2>Circuit schedules</h2><p>${plural(nc,'circuit')} across all boards.</p>
+  <div class="row"><button class="btn primary" onclick="download('db-circuits-'+today()+'.csv',toCsv(circuitRows()),'text/csv');toast('CSV downloaded')" ${nc?'':'disabled'}>Download CSV</button><button class="btn" onclick="copyRows(circuitRows())" ${nc?'':'disabled'}>Copy for Excel</button></div>
+  <h2>Map symbols</h2><div class="row"><button class="btn" onclick="download('db-map-symbols-'+today()+'.csv',toCsv(symRows()),'text/csv');toast('CSV downloaded')">Download CSV</button></div>
+  ${CLOUD?`<h2>Google Sheet</h2><p style="margin-top:0">Boards, remedials, circuits and symbols in your site's Google Sheet. It also refreshes itself every 10 minutes while the app is in use.</p><div class="row"><button class="btn primary" onclick="publishSheet()">Update Google Sheet</button>${CLOUD.sheetUrl?`<a class="btn" href="${esc(CLOUD.sheetUrl)}" target="_blank" rel="noopener">Open sheet</a>`:''}</div>`:''}
+  <p class="hint">If a download doesn't start on your phone, use Copy for Excel and paste into a blank sheet.</p></div></div></div>`;
+}
+async function copyRows(r){try{await navigator.clipboard.writeText(toTsv(r));toast('Copied. Paste into Excel.')}catch(e){toast('Copy was blocked. Try Download CSV.')}}
+function closeOv(){document.getElementById('ovl').innerHTML=''}
+
+/* ============ calendar ============ */
+const icsEsc=s=>String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+function icsFold(line){const out=[];let s=line;while(s.length>73){out.push(s.slice(0,73));s=' '+s.slice(73)}out.push(s);return out.join('\r\n')}
+const dcompact=s=>s.replace(/-/g,'');
+function calEvents(eng){
+  const ev=[];
+  for(const [wk,w] of Object.entries(WEEKS)){
+    const list=DBS.filter(d=>d.wk===+wk&&(!eng||d.engineer===eng));if(!list.length)continue;
+    const endEx=ymd(new Date(toD(w[2]).getTime()+5*864e5));
+    ev.push({uid:'dbwk'+wk+(eng||'all').replace(/\W/g,''),title:`DB checks week ${wk}: ${plural(list.length,'board')}${eng?'':' (all engineers)'}`,start:w[2],endEx,
+      desc:list.map(d=>`${d.ref} – ${d.building}, ${d.room}${eng?'':' ('+d.engineer+')'}`).join('\n')});
+  }
+  for(const m of allMaps())for(const p of pinsOf(m.id)){const r=rcdDue(p);if(!r)continue;const d=BY_ASSET[p.asset];if(eng&&d&&d.engineer!==eng)continue;
+    const endEx=ymd(new Date(toD(r.next).getTime()+864e5));
+    ev.push({uid:'rcd'+p.id+r.next,title:`RCD 6-monthly test: ${d?d.ref:'Pin '+p.num} (${m.name})`,start:r.next,endEx,desc:`Push-button test of RCDs at ${d?d.ref+', '+d.room:'pin '+p.num}. Last tested ${fmt(p.checks.RCD6date)}.`})}
+  for(const m of allMaps())for(const p of pinsOf(m.id)){const nd=p.checks&&p.checks.nextDue;if(!nd)continue;const d=BY_ASSET[p.asset];if(eng&&d&&d.engineer!==eng)continue;
+    const endEx=ymd(new Date(toD(nd).getTime()+864e5));
+    ev.push({uid:'next'+p.id+nd,title:`DB check due: ${d?d.ref:'Pin '+p.num} (${m.name})`,start:nd,endEx,desc:`Routine check due at ${d?d.ref+', '+d.room:'pin '+p.num}. Last checked ${fmt(p.checks.date)}.`})}
+  return ev.sort((a,b)=>a.start.localeCompare(b.start));
+}
+function buildIcs(ev,eng){const who=eng&&engByName(eng);
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//DB Map//Skegness//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH'];
+  const stamp=new Date().toISOString().replace(/[-:]/g,'').slice(0,15)+'Z';
+  for(const e of ev){L.push('BEGIN:VEVENT','UID:'+e.uid+'@dbmap','DTSTAMP:'+stamp,'DTSTART;VALUE=DATE:'+dcompact(e.start),'DTEND;VALUE=DATE:'+dcompact(e.endEx),icsFold('SUMMARY:'+icsEsc(e.title)),icsFold('DESCRIPTION:'+icsEsc(e.desc)),...(e.attEmail?[icsFold('ATTENDEE;CN='+icsEsc(e.attName)+':mailto:'+e.attEmail)]:who&&who.email?[icsFold('ATTENDEE;CN='+icsEsc(who.name)+':mailto:'+who.email)]:[]),'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+icsEsc(e.title.slice(0,60)),'TRIGGER:-PT15H','END:VALARM','END:VEVENT')}
+  L.push('END:VCALENDAR');return L.join('\r\n');
+}
+function gcalLink(e,eng){const q=new URLSearchParams({action:'TEMPLATE',text:e.title,dates:dcompact(e.start)+'/'+dcompact(e.endEx),details:e.desc.slice(0,1500)});const em=eng&&engByName(eng)?.email;if(em)q.set('add',em);return 'https://calendar.google.com/calendar/render?'+q.toString()}
+function openCalendar(){
+  if(S.calEng===''||(S.calEng!=='*'&&!engNames().includes(S.calEng)))S.calEng=engNames().includes('Dan Wynn')?'Dan Wynn':'*';
+  const eng=S.calEng==='*'?'':S.calEng,ev=calEvents(eng),up=ev.filter(e=>daysTo(e.endEx)>0);
+  document.getElementById('ovl').innerHTML=`<div class="ov"><header><button class="hbtn" onclick="closeOv()">‹ Back</button><h1>Reminders</h1></header><div class="body"><div class="wrap">
+   <p>Weekly DB check events from the schedule, plus RCD 6-monthly tests due on your placed boards. Each event reminds you at 9am the day before.</p>
+   <label class="f" for="cal-eng">Engineer</label><select id="cal-eng" onchange="S.calEng=this.value||'*';openCalendar()">${opt('*','All engineers',S.calEng)}${engNames().map(e=>opt(e,e,S.calEng)).join('')}</select>
+   ${eng&&!engByName(eng)?.email?`<p class="hint">Add an email for ${esc(eng)} in Engineers and the Google links will invite them too.</p>`:''}
+   <div class="row" style="margin-top:12px"><button class="btn primary" onclick="download('db-reminders.ics',buildIcs(calEvents(eng),eng),'text/calendar');toast('Calendar file downloaded')" ${ev.length?'':'disabled'}>Download calendar file (${ev.length})</button></div>
+   <p class="hint">On Android, open the downloaded file and choose Google Calendar. On a computer, go to Google Calendar, Settings, Import & export. If your schedule changes, download and import it again.</p>
+   <h2>Or add one at a time</h2>
+   ${up.slice(0,40).map(e=>`<div class="calrow"><span><b>${esc(fmt(e.start))}</b><br>${esc(e.title)}</span><a href="${esc(gcalLink(e,eng))}" target="_blank" rel="noopener">Add to Google</a></div>`).join('')||'<p class="hint">No upcoming events for this engineer.</p>'}
+  </div></div></div>`;
+}
+
+/* ============ map view ============ */
+function openMap(id,pinId,tab){Object.assign(S,{view:'map',mapId:id,pinId:null,cableId:null,symSel:null,sym:null,symCable:null,place:false,draw:null,adjust:null});closeOv();renderMap(pinId,tab)}
+async function renderMap(focus,tab){
+  const m=curMap();
+  header(`<button class="hbtn" onclick="leaveMap()" aria-label="Back to maps">‹</button><select class="mapsel" onchange="openMap(this.value)" aria-label="Choose map">${allMaps().map(x=>opt(x.id,x.name,m.id)).join('')}</select>${SB()}<button class="hbtn" onclick="openList()">List</button>`);
+  document.getElementById('main').innerHTML=`<div class="vp" id="vp"><div class="loading">Loading map…</div></div><div id="banner"></div>
+   <div class="legend" id="legend"></div>
+   <div class="tools"><div class="tgrp"><button class="tool" id="placeBtn" onclick="togglePlace()">+ Add DB</button><button class="tool alt" id="drawBtn" onclick="S.sym?endSyms():startSyms()">Symbols</button><button class="tool alt" id="lockBtn" onclick="toggleLock()">${S.locked?'Locked':'Unlocked'}</button></div>
+   <div class="zoom"><button onclick="setZoom(S.zoom/1.4)" aria-label="Zoom out">−</button><button onclick="setZoom(S.minZ)" style="font-size:14px">Fit</button><button onclick="setZoom(S.zoom*1.4)" aria-label="Zoom in">+</button></div></div><div id="palette"></div><div id="sheet"></div>`;
+  drawLegend();
+  let src=m.src||imgCache[m.id]||await getMapSrc(m);
+  const vp=document.getElementById('vp');if(!vp||S.mapId!==m.id)return;
+  if(!src){vp.innerHTML='<div class="loading">Map image not found. Delete this map from List and upload it again.</div>';return}
+  imgCache[m.id]=src;
+  vp.innerHTML=`<div class="canvas${S.locked?'':' unlocked'}" id="cv"><img id="mimg" alt="${esc(m.name)} plan"><svg id="cables" viewBox="0 0 ${m.w} ${m.h}" preserveAspectRatio="none"></svg><div id="labels"></div><div id="syms"></div><div id="pins"></div></div>`;
+  const img=document.getElementById('mimg');
+  img.onload=()=>{S.minZ=Math.min(1,vp.clientHeight/(vp.clientWidth*(m.h/m.w)));S.zoom=S.minZ;document.getElementById('cv').style.width=(vp.clientWidth*S.zoom)+'px';drawAll();bindMap();if(focus){openPin(focus,tab||'board');centerOn(focus)}};
+  img.src=src;
+}
+function leaveMap(){S.draw=null;S.adjust=null;S.sym=null;S.symSel=null;renderHome()}
+function drawLegend(){
+  const el=document.getElementById('legend');if(!el)return;
+  const mode=`<button onclick="S.pinColour=S.pinColour==='status'?'engineer':'status';drawLegend();drawPins()">${S.pinColour==='status'?'Colour by engineer':'Colour by status'}</button>`;
+  const cab=`<button onclick="S.showCables=!S.showCables;drawLegend();drawAll()">${S.showCables?'Hide cables':'Show cables'}</button><button onclick="S.showSyms=S.showSyms===false;drawLegend();drawSyms()">${S.showSyms===false?'Show symbols':'Hide symbols'}</button>`;
+  if(!S.legend){el.innerHTML=`<button onclick="S.legend=true;drawLegend()" aria-expanded="false">Key</button>${mode}${cab}`;return}
+  const pinKey=S.pinColour==='engineer'?engNames().map(n=>`<span><i class="dot" style="background:${engColor(n)}"></i>${esc(n)}</span>`).join('')+`<span><i class="dot" style="background:#9AA5A0"></i>Unassigned</span>`
+    :`<span><i class="dot" style="background:var(--grey)"></i>Not started</span><span><i class="dot" style="background:var(--amber)"></i>In progress</span><span><i class="dot" style="background:var(--ok)"></i>Signed off</span><span><i class="dot" style="background:var(--red)"></i>Fault</span>`;
+  el.innerHTML=`<button onclick="S.legend=false;drawLegend()" aria-expanded="true">Hide key</button>${pinKey}
+  ${CTYPES.map(([k,l,c])=>`<span><i class="ln" style="background:${k==='bonding'?`repeating-linear-gradient(90deg,${c} 0 4px,#F2C400 4px 8px)`:c}"></i>${l}</span>`).join('')}${SYMS.map(x=>`<span>${symSvg(x.k,16)}${esc(x.l)}</span>`).join('')}${mode}${cab}`;
+}
+function imgPt(e){const cv=document.getElementById('cv'),r=cv.getBoundingClientRect(),m=curMap();return{x:Math.max(0,Math.min(m.w,(e.clientX-r.left)/r.width*m.w)),y:Math.max(0,Math.min(m.h,(e.clientY-r.top)/r.height*m.h))}}
+const pinPx=p=>{const m=curMap();return[p.x/100*m.w,p.y/100*m.h]};
+function bindMap(){
+  const vp=document.getElementById('vp'),cv=document.getElementById('cv');
+  cv.addEventListener('click',e=>{
+    if(S.adjust)return;
+    if(S.draw){drawTap(imgPt(e));return}
+    if(S.sym){if(S.sym!=='erase')placeSym(imgPt(e));return}
+    if(!S.place){const t=Date.now(),lt=S.lastTap;S.lastTap={t,x:e.clientX,y:e.clientY};if(lt&&t-lt.t<380&&Math.hypot(e.clientX-lt.x,e.clientY-lt.y)<40){S.lastTap=null;quickClose()}return}
+    const m=curMap(),pt=imgPt(e),x=pt.x/m.w*100,y=pt.y/m.h*100;
+    const ps=pinsOf(S.mapId),num=ps.reduce((a,p)=>Math.max(a,+p.num||0),0)+1;
+    const p=normPin({id:uid(),num,x,y,asset:S.pendingAsset||'',notes:''});ps.push(p);S.pendingAsset='';
+    S.place=false;updateBanner();drawAll();openPin(p.id,'board');scheduleSave();
+  });
+  let pinch=null;const dist=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+  vp.addEventListener('touchstart',e=>{if(e.touches.length===2)pinch={d:dist(e.touches[0],e.touches[1]),z:S.zoom}},{passive:true});
+  vp.addEventListener('touchmove',e=>{if(pinch&&e.touches.length===2){e.preventDefault();const[a,b]=e.touches,r=vp.getBoundingClientRect();setZoom(pinch.z*dist(a,b)/pinch.d,(a.clientX+b.clientX)/2-r.left,(a.clientY+b.clientY)/2-r.top)}},{passive:false});
+  vp.addEventListener('touchend',e=>{if(e.touches.length<2)pinch=null});
+  vp.addEventListener('wheel',e=>{if(e.ctrlKey){e.preventDefault();const r=vp.getBoundingClientRect();setZoom(S.zoom*(e.deltaY<0?1.15:1/1.15),e.clientX-r.left,e.clientY-r.top)}},{passive:false});
+}
+function setZoom(z,fx,fy){
+  const vp=document.getElementById('vp'),cv=document.getElementById('cv');if(!cv)return;
+  z=Math.max(S.minZ,Math.min(10,z));if(fx===undefined){fx=vp.clientWidth/2;fy=vp.clientHeight/2}
+  const cx=(vp.scrollLeft+fx-cv.offsetLeft)/cv.offsetWidth,cy=(vp.scrollTop+fy-cv.offsetTop)/cv.offsetHeight;
+  S.zoom=z;cv.style.width=(vp.clientWidth*z)+'px';
+  vp.scrollLeft=cx*cv.offsetWidth+cv.offsetLeft-fx;vp.scrollTop=cy*cv.offsetHeight+cv.offsetTop-fy;
+}
+function centerOn(id){
+  const vp=document.getElementById('vp'),cv=document.getElementById('cv'),p=pinsOf(S.mapId).find(x=>x.id===id);if(!cv||!p)return;
+  if(S.zoom<S.minZ*2)setZoom(S.minZ*2.5);
+  vp.scrollLeft=cv.offsetLeft+p.x/100*cv.offsetWidth-vp.clientWidth/2;vp.scrollTop=cv.offsetTop+p.y/100*cv.offsetHeight-vp.clientHeight*.28;
+}
+function drawAll(){drawCables();drawSyms();drawPins()}
+function drawPins(){
+  const el=document.getElementById('pins');if(!el)return;
+  el.innerHTML=pinsOf(S.mapId).map(p0=>{const p=normPin(p0),st=pinStatus(p),d=BY_ASSET[p.asset],r=rcdDue(p);
+    const col=S.pinColour==='engineer'?engColor(d?d.engineer:''):st.c;
+    return `<button class="pin${p.id===S.pinId?' sel':''}${S.draw&&p.id!==S.draw.pinId?' target':''}" data-id="${p.id}" style="left:${p.x}%;top:${p.y}%" aria-label="Pin ${esc(p.num)}${d?', '+esc(d.ref):''}${d&&d.engineer?', '+esc(d.engineer):''}, ${esc(st.l)}"><span class="n" style="background:${col}">${esc(p.num)}</span><span class="l${d?'':' none'}">${d?esc(d.ref):'No DB'}</span>${r&&r.days<0?'<span class="r6">RCD</span>':''}</button>`}).join('');
+  el.querySelectorAll('.pin').forEach(bindPin);
+  const cv=document.getElementById('cv');cv&&cv.classList.toggle('placing',S.place||!!S.draw||!!S.sym);
+}
+function cablePts(p,cb){const m=curMap();const pts=[pinPx(p),...cb.pts];if(cb.to){const t=pinsOf(S.mapId).find(x=>x.id===cb.to);if(t)pts.push(pinPx(t))}return pts}
+function drawCables(){
+  const svg=document.getElementById('cables'),lab=document.getElementById('labels');if(!svg)return;
+  let s='',l='';const m=curMap();
+  if(S.showCables||S.draw)for(const p of pinsOf(S.mapId))for(const cb of p.cables||[]){
+    if(S.draw&&S.draw.cableId===cb.id)continue;
+    const pts=cablePts(p,cb);if(pts.length<2)continue;
+    const P=pts.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ');const col=(CT[cb.type]||CT.other).c,sel=cb.id===S.cableId?' sel':'';
+    s+=`<polyline class="cab${sel}" points="${P}" stroke="${col}" vector-effect="non-scaling-stroke"/>`;
+    if(cb.type==='bonding')s+=`<polyline class="bond2${sel}" points="${P}" vector-effect="non-scaling-stroke"/>`;
+    s+=`<polyline class="hit" points="${P}" vector-effect="non-scaling-stroke" data-pin="${p.id}" data-cab="${cb.id}"/>`;
+    const ci=(p.circuits||[]).find(c=>c.id===cb.circuit),end=pts[pts.length-1];
+    const txt=ci&&ci.no?'C'+ci.no:(cb.size?cb.size+'mm²':'');
+    if(txt&&!cb.to)l+=`<span class="clab" style="left:${end[0]/m.w*100}%;top:${end[1]/m.h*100}%;background:${col}">${esc(txt)}</span>`;
+  }
+  if(S.draw){const p=pinsOf(S.mapId).find(x=>x.id===S.draw.pinId);const pts=[pinPx(p),...S.draw.pts];
+    s+=`<polyline class="preview" points="${pts.map(q=>q.join(',')).join(' ')}" vector-effect="non-scaling-stroke"/>`;
+    const rr=Math.max(m.w,m.h)/250;s+=S.draw.pts.map(q=>`<circle class="vtx" cx="${q[0]}" cy="${q[1]}" r="${rr}" vector-effect="non-scaling-stroke"/>`).join('')}
+  svg.innerHTML=s;if(!drawCables.linesOnly){lab.innerHTML=l;drawHandles()}
+  svg.querySelectorAll('.hit').forEach(h=>h.addEventListener('click',e=>{if(S.place||S.draw||S.adjust||S.sym)return;e.stopPropagation();openCable(h.dataset.pin,h.dataset.cab)}));
+}
+function followPin(p,o){const n=pinPx(p);const fix=q=>{if(!q)return;if(Math.abs(q[1]-o[1])<1.5)q[1]=n[1];else if(Math.abs(q[0]-o[0])<1.5)q[0]=n[0]};
+  (p.cables||[]).forEach(cb=>fix(cb.pts[0]));pinsOf(S.mapId).forEach(x=>(x.cables||[]).forEach(cb=>{if(cb.to===p.id)fix(cb.pts[cb.pts.length-1])}))}
+function drawCablesOnly(){drawCables.linesOnly=true;drawCables();drawCables.linesOnly=false}
+function bindPin(btn){
+  let start=null,moved=false;
+  btn.addEventListener('pointerdown',e=>{if(S.place)return;e.stopPropagation();start={x:e.clientX,y:e.clientY};moved=false;if(!S.locked&&!S.draw)btn.setPointerCapture(e.pointerId)});
+  btn.addEventListener('pointermove',e=>{
+    if(!start||S.locked||S.draw)return;
+    if(!moved&&Math.hypot(e.clientX-start.x,e.clientY-start.y)<6)return;
+    moved=true;btn.classList.add('drag');
+    const m=curMap(),pt=imgPt(e);btn._pos={x:pt.x/m.w*100,y:pt.y/m.h*100};btn.style.left=btn._pos.x+'%';btn.style.top=btn._pos.y+'%';
+  });
+  btn.addEventListener('pointerup',e=>{
+    if(!start)return;e.stopPropagation();
+    if(moved&&btn._pos){const p=pinsOf(S.mapId).find(x=>x.id===btn.dataset.id),o=pinPx(p);p.x=btn._pos.x;p.y=btn._pos.y;followPin(p,o);btn.classList.remove('drag');drawCables();scheduleSave()}
+    else if(Math.hypot(e.clientX-start.x,e.clientY-start.y)<8){if(S.adjust)return;if(S.draw){drawToPin(btn.dataset.id)}else openPin(btn.dataset.id)}
+    start=null;
+  });
+  btn.addEventListener('pointercancel',()=>{start=null;btn.classList.remove('drag');drawPins()});
+  btn.addEventListener('click',e=>e.stopPropagation());
+}
+function togglePlace(){if(S.draw||S.adjust)return;if(S.sym)endSyms();S.place=!S.place;S.pendingAsset='';if(S.place){S.pinId=null;S.cableId=null;renderSheet()}updateBanner();drawPins()}
+function toggleLock(){S.locked=!S.locked;const b=document.getElementById('lockBtn');b.textContent=S.locked?'Locked':'Unlocked';b.classList.toggle('on',!S.locked);document.getElementById('cv')?.classList.toggle('unlocked',!S.locked);toast(S.locked?'Pins locked':'Unlocked. Drag pins to move them.')}
+function updateBanner(){
+  document.getElementById('placeBtn')?.classList.toggle('on',S.place);
+  const b=document.getElementById('banner');if(!b)return;
+  if(S.place)b.innerHTML=`<div class="banner"><span>Tap the map where ${S.pendingAsset?esc(BY_ASSET[S.pendingAsset].ref):'the board'} is. Zoom in first for accuracy.</span><button onclick="togglePlace()">Cancel</button></div>`;
+  else if(S.sym){const lab=S.sym==='erase'?'':SYM[S.sym].l.toLowerCase();b.innerHTML=`<div class="banner"><span>${S.sym==='erase'?'Tap a symbol to remove it.':S.symCable?`Tap along the cable to add ${lab}s. Each tap adds one.`:`Tap the map to add a ${lab}. Tap on or near a cable to add it to that circuit.`}</span>${S.symSteps.length?'<button onclick="symUndo()">Undo</button>':''}<button class="go" onclick="endSyms()">Done</button></div>`}
+  else if(S.adjust)b.innerHTML=`<div class="banner"><span>Drag the white dots to reshape the cable. Connected lines stay straight.</span><button class="go" onclick="endAdjust()">Done</button></div>`;
+  else if(S.draw)b.innerHTML=`<div class="banner"><span>Tap along the cable route. Lines straighten automatically. Tap another DB to connect to it.</span><button onclick="drawUndo()" ${S.draw.pts.length?'':'disabled'}>Undo</button><button onclick="drawCancel()">Cancel</button><button class="go" onclick="drawFinish()" ${S.draw.pts.length?'':'disabled'}>Finish</button></div>`;
+  else b.innerHTML='';
+}
+
+/* ---- cable drawing ---- */
+function segDir(a,b){if(!a||!b)return null;if(Math.abs(a[1]-b[1])<1)return 'h';if(Math.abs(a[0]-b[0])<1)return 'v';return null}
+function snapPts(prev,pt,dir){
+  const dx=pt.x-prev[0],dy=pt.y-prev[1];if(Math.hypot(dx,dy)<2)return[];
+  const a=Math.atan2(dy,dx)*180/Math.PI,n90=Math.round(a/90)*90,n45=Math.round(a/45)*45,T=8;
+  if(Math.abs(a-n90)<=T)return Math.abs(n90)%180===0?[[pt.x,prev[1]]]:[[prev[0],pt.y]];
+  if(n45%90!==0&&Math.abs(a-n45)<=T){const r=n45*Math.PI/180,t=dx*Math.cos(r)+dy*Math.sin(r);return[[prev[0]+t*Math.cos(r),prev[1]+t*Math.sin(r)]]}
+  const hFirst=dir?dir==='h':Math.abs(dx)>=Math.abs(dy);
+  return hFirst?[[pt.x,prev[1]],[pt.x,pt.y]]:[[prev[0],pt.y],[pt.x,pt.y]];
+}
+function tidy(start,pts,end){
+  const all=[start,...pts,...(end?[end]:[])],out=[all[0]];
+  for(let i=1;i<all.length;i++){const q=all[i],pr=out[out.length-1];if(Math.hypot(q[0]-pr[0],q[1]-pr[1])<1)continue;
+    if(out.length>=2){const pp=out[out.length-2];if((Math.abs(pp[0]-pr[0])<1&&Math.abs(pr[0]-q[0])<1)||(Math.abs(pp[1]-pr[1])<1&&Math.abs(pr[1]-q[1])<1)){out[out.length-1]=q;continue}}
+    out.push(q)}
+  return out.slice(1,end?-1:undefined);
+}
+function startDraw(cableId){
+  const p=curPin();S.draw={pinId:p.id,pts:[],steps:[],cableId:cableId||null};S.adjust=null;
+  S.cableId=null;const el=document.getElementById('sheet');el.innerHTML='';S.place=false;
+  updateBanner();drawAll();toast('Tap the map to route the cable');
+}
+function drawTap(pt){
+  const p=pinsOf(S.mapId).find(x=>x.id===S.draw.pinId),all=[pinPx(p),...S.draw.pts],prev=all[all.length-1];
+  const add=snapPts(prev,pt,segDir(all[all.length-2],prev));if(!add.length)return;
+  S.draw.pts.push(...add);S.draw.steps.push(add.length);updateBanner();drawCables();
+}
+function drawToPin(targetId){
+  if(targetId===S.draw.pinId){toast('That\'s the board this cable starts from');return}
+  const p=pinsOf(S.mapId).find(x=>x.id===S.draw.pinId),t=pinsOf(S.mapId).find(x=>x.id===targetId);
+  const prev=S.draw.pts.length?S.draw.pts[S.draw.pts.length-1]:pinPx(p),tp=pinPx(t);
+  const all=[pinPx(p),...S.draw.pts],dir=segDir(all[all.length-2],prev);
+  if(Math.abs(prev[0]-tp[0])>1&&Math.abs(prev[1]-tp[1])>1)S.draw.pts.push(dir==='v'?[prev[0],tp[1]]:[tp[0],prev[1]]);
+  drawFinish(targetId);
+}
+function startAdjust(){S.adjust={pinId:S.pinId,cableId:S.cableId};const el=document.getElementById('sheet');el.innerHTML='';el.dataset.key='';updateBanner();drawAll();toast('Drag the white dots')}
+function endAdjust(){const a=S.adjust;S.adjust=null;const p=pinsOf(S.mapId).find(x=>x.id===a.pinId),cb=p.cables.find(c=>c.id===a.cableId);const tp=cb.to&&pinsOf(S.mapId).find(x=>x.id===cb.to);cb.pts=tidy(pinPx(p),cb.pts,tp?pinPx(tp):null);scheduleSave();updateBanner();S.pinId=a.pinId;S.cableId=a.cableId;drawAll();renderSheet()}
+function drawHandles(){
+  const lab=document.getElementById('labels');if(!S.adjust||!lab)return;
+  const m=curMap(),p=pinsOf(S.mapId).find(x=>x.id===S.adjust.pinId),cb=p.cables.find(c=>c.id===S.adjust.cableId);
+  lab.innerHTML+=cb.pts.map((q,i)=>`<button class="vh" data-i="${i}" style="left:${q[0]/m.w*100}%;top:${q[1]/m.h*100}%" aria-label="Route point ${i+1}"></button>`).join('');
+  lab.querySelectorAll('.vh').forEach(h=>{
+    h.addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();h.setPointerCapture(e.pointerId);h.classList.add('drag');h._on=true;
+      const i=+h.dataset.i,all=cablePts(p,cb);h._dp=segDir(all[i],all[i+1]);h._dn=segDir(all[i+1],all[i+2])});
+    h.addEventListener('pointermove',e=>{if(!h._on)return;const i=+h.dataset.i,pt=imgPt(e),all=cablePts(p,cb),prev=all[i],next=all[i+2];
+      const cv=document.getElementById('cv'),thr=14*m.w/cv.getBoundingClientRect().width;let x=pt.x,y=pt.y;
+      const prevFixed=i===0,nextFixed=i===cb.pts.length-1&&!!cb.to;
+      if(h._dp==='h'){if(prevFixed)y=prev[1];else cb.pts[i-1][1]=y}else if(h._dp==='v'){if(prevFixed)x=prev[0];else cb.pts[i-1][0]=x}
+      else if(prev){if(Math.abs(x-prev[0])<thr)x=prev[0];if(Math.abs(y-prev[1])<thr)y=prev[1]}
+      if(next){if(h._dn==='h'){if(nextFixed)y=next[1];else cb.pts[i+1][1]=y}else if(h._dn==='v'){if(nextFixed)x=next[0];else cb.pts[i+1][0]=x}
+      else{if(Math.abs(x-next[0])<thr)x=next[0];if(Math.abs(y-next[1])<thr)y=next[1]}}
+      cb.pts[i]=[x,y];lab.querySelectorAll('.vh').forEach(v=>{const q=cb.pts[+v.dataset.i];v.style.left=q[0]/m.w*100+'%';v.style.top=q[1]/m.h*100+'%'});drawCablesOnly()});
+    h.addEventListener('pointerup',e=>{h._on=false;h.classList.remove('drag');scheduleSave()});
+    h.addEventListener('click',e=>e.stopPropagation());
+  });
+}
+function drawUndo(){const n=S.draw.steps.pop()||1;S.draw.pts.splice(-n,n);updateBanner();drawCables()}
+function drawCancel(){const pid=S.draw.pinId;S.draw=null;updateBanner();drawAll();openPin(pid,'circuits')}
+function drawFinish(to){
+  const d=S.draw,p=pinsOf(S.mapId).find(x=>x.id===d.pinId);normPin(p);
+  if(!d.pts.length&&!to){toast('Tap at least one point first');return}
+  const tp=to&&pinsOf(S.mapId).find(x=>x.id===to);d.pts=tidy(pinPx(p),d.pts,tp?pinPx(tp):null);
+  let cb=d.cableId&&p.cables.find(c=>c.id===d.cableId);
+  if(cb){cb.pts=d.pts;cb.to=to||null}
+  else{cb={id:uid(),pts:d.pts,to:to||null,type:to?'submain':'',circuit:'',cable:'',size:'',powers:to?'Sub-DB':'',notes:''};p.cables.push(cb)}
+  S.draw=null;updateBanner();scheduleSave();S.pinId=p.id;S.cableId=cb.id;drawAll();renderSheet();
+  if(to){const t=pinsOf(S.mapId).find(x=>x.id===to);let msg='Connected to pin '+t.num;
+    if(p.asset&&t.asset&&!parentOf(t.asset)&&t.asset!==p.asset&&!isDesc(t.asset,p.asset)){data.parents[t.asset]=p.asset;msg=BY_ASSET[t.asset].ref+' is now fed from '+BY_ASSET[p.asset].ref;scheduleSave()}
+    toast(msg)}
+}
+
+/* ============ pin sheet ============ */
+function openPin(id,tab){S.pinId=id;S.cableId=null;S.symSel=null;if(tab)S.tab=tab;S.search='';S.editCircuit=null;renderSheet();drawAll()}
+function openCable(pinId,cabId){S.pinId=pinId;S.cableId=cabId;S.symSel=null;renderSheet();drawAll();const p=curPin(),cb=p&&p.cables.find(c=>c.id===cabId);if(cb){const pts=cablePts(p,cb),q=pts[Math.floor(pts.length/2)];centerPx(q[0],q[1])}}
+function centerPx(x,y){const vp=document.getElementById('vp'),cv=document.getElementById('cv'),m=curMap();if(!cv)return;vp.scrollLeft=cv.offsetLeft+x/m.w*cv.offsetWidth-vp.clientWidth/2;vp.scrollTop=cv.offsetTop+y/m.h*cv.offsetHeight-vp.clientHeight*.22}
+function closeSheet(){S.pinId=null;S.cableId=null;S.symSel=null;renderSheet();drawAll()}
+function sheetHead(){
+  const p=curPin(),st=pinStatus(p),d=BY_ASSET[p.asset];
+  return `<div class="bign" style="background:${st.c}">${esc(p.num)}</div><div class="st"><b>${d?esc(d.ref)+' – '+esc(d.room):'No board linked'}</b>${esc(st.l)}</div><button class="close" onclick="closeSheet()">Close</button>`;
+}
+const refreshHead=()=>{const h=document.getElementById('shead');h&&(h.innerHTML=sheetHead())};
+function sheetKeep(el,key){const had=!!el.querySelector('.sheet'),sb=el.querySelector('.sbody'),top=(had&&el.dataset.key===key&&sb)?sb.scrollTop:0;el.dataset.key=key;return{still:had?' still':'',restore:()=>{const n=el.querySelector('.sbody');if(n)n.scrollTop=top}}}
+function renderSheet(){
+  const el=document.getElementById('sheet');if(!el)return;if(S.symSel){renderSymSheet(el);return}const p=curPin();if(!p){el.innerHTML='';el.dataset.key='';return}normPin(p);
+  if(S.cableId){renderCableSheet(el,p);return}
+  const nd=p.diagrams.length,k=sheetKeep(el,'p'+p.id+S.tab);
+  el.innerHTML=`<div class="sheet${k.still}" role="dialog" aria-label="Pin ${esc(p.num)}"><div class="shead" id="shead">${sheetHead()}</div>
+   <div class="tabs" role="tablist">${[['board','Board'],['circuits','Circuits'+(p.circuits.length?' ('+p.circuits.length+')':'')],['checks','Checks'],['diagrams','Files'+(nd?' ('+nd+')':'')]].map(([k,l])=>`<button role="tab" class="${S.tab===k?'on':''}" onclick="S.tab='${k}';S.editCircuit=null;renderSheet()">${l}</button>`).join('')}</div>
+   <div class="sbody" id="sbody"></div></div>`;
+  ({board:renderBoard,circuits:renderCircuits,checks:renderChecks,diagrams:renderDiagrams})[S.tab]();
+  k.restore();
+}
+const dbLabel=d=>`${d.ref} – ${d.room||d.floor}`;
+
+/* ---- board tab ---- */
+function renderBoard(){
+  const p=curPin(),m=curMap(),bk=bKey(m),pl=placed();
+  const list=DBS.filter(d=>d.building===bk).sort((a,b)=>(a.floor+a.ref).localeCompare(b.floor+b.ref,undefined,{numeric:true}));
+  const floors=[...new Set(list.map(d=>d.floor))];
+  const optsFor=f=>list.filter(d=>d.floor===f).map(d=>{const at=pl[d.asset],taken=at&&at.pin.id!==p.id;return `<option value="${esc(d.asset)}"${d.asset===p.asset?' selected':''}${taken?' disabled':''}>${esc(dbLabel(d))}${taken?' (placed)':''}${d.custom?' (added)':''}</option>`}).join('');
+  const d=BY_ASSET[p.asset],w=d&&WEEKS[d.wk];
+  document.getElementById('sbody').innerHTML=`
+   <div class="photos">${p.photos.map(ph=>`<button class="ph" onclick="viewFile('${ph.id}','photos')" aria-label="View photo"><img src="${ph.thumb}" alt=""></button>`).join('')}<label>${p.photos.length?'+ Add photo':'+ Add a photo of the board'}<input type="file" accept="image/*" multiple hidden onchange="addFiles(this,'photos')"></label></div>
+   <div class="grid2"><div><label class="f" for="b-num">Pin number</label><input type="number" id="b-num" inputmode="numeric" value="${esc(p.num)}" oninput="setPin('num',this.value)"></div>
+   <div><label class="f">Building</label><div style="padding:9px 0;font-weight:600;line-height:1.2">${esc(bk)}</div></div></div>
+   <label class="f" for="b-db">Distribution board</label>
+   ${list.length?`<select id="b-db" onchange="linkDb(this.value)"><option value="">Select a board…</option>${floors.map(f=>`<optgroup label="${esc(f||'Other')}">${optsFor(f)}</optgroup>`).join('')}${d&&!list.includes(d)?`<optgroup label="Other building">${opt(d.asset,dbLabel(d)+' ('+d.building+')',p.asset)}</optgroup>`:''}</select>`
+     :`<p class="hint" style="margin-top:0">No boards listed for ${esc(bk)} yet. Search below or add a new one.</p>`}
+   <label class="f" for="b-search">Search all boards</label><input type="search" id="b-search" placeholder="Asset code, DB name, building or room" value="${esc(S.search)}" oninput="S.search=this.value;searchDb()"><div id="results"></div>
+   <div id="newdb"><button class="btn small" style="margin-top:10px" onclick="showNewDb()">+ Board not in the schedule</button></div>
+   ${d?`<div class="card" id="dbcard"><b>${esc(d.ref)}</b>${d.edited?' <span class="chg">Renamed</span>':''}${d.custom?' (added by you)':''}<br>${d.custom?'':esc(d.asset)+'<br>'}${esc(d.name)}<br>${esc(d.building)}, ${esc(d.floor)}, ${esc(d.room)}${d.wk?'<br>Week '+d.wk+(w?' ('+esc(w[0])+' to '+esc(w[1])+')':''):''}
+   <label class="f" for="b-eng" style="margin-top:8px">Assigned engineer</label><select id="b-eng" onchange="setAssign('${esc(d.asset)}',this.value)">${engOpts(d.engineer,'Unassigned')}</select>
+   <div class="row" style="margin-top:10px"><button class="btn small" onclick="showEditDb()">Edit details</button><button class="btn small" onclick="showQR('${esc(d.asset)}')">QR label</button></div></div>`:''}
+   ${p.asset?supplySection(p,list):''}
+   <label class="f" for="b-notes">Notes</label><textarea id="b-notes" placeholder="Access, keys, location details" oninput="setPin('notes',this.value)">${esc(p.notes)}</textarea>
+   <div class="row" style="margin-top:14px">${p.asset?'<button class="btn small" onclick="linkDb(\'\')">Unlink board</button>':''}<button class="btn small danger" onclick="armed(this,removePin,'Tap again to remove')">Remove pin</button></div>
+   <p class="hint">To move a pin, tap Unlocked on the map and drag it. Cables follow the board.</p>`;
+  if(S.search)searchDb();
+}
+function supplySection(p,list){
+  const a=p.asset,par=parentOf(a),kids=childrenOf(a),pd=BY_ASSET[par];
+  const ok=d=>d.asset!==a&&!isDesc(a,d.asset);
+  let o=opt('','Not recorded',par)+opt('SUPPLY','Incoming supply / main intake',par)+list.filter(ok).map(d=>opt(d.asset,dbLabel(d),par)).join('');
+  if(pd&&!list.includes(pd))o+=opt(pd.asset,dbLabel(pd)+' ('+pd.building+')',par);
+  return `<h3>Supply</h3><label class="f" for="b-par">Fed from</label><select id="b-par" onchange="setParent(this.value)">${o}</select>
+   <input type="search" style="margin-top:6px" placeholder="Fed from a board in another building? Search" value="${esc(S.psearch||'')}" oninput="S.psearch=this.value;parentSearch()"><div id="presults"></div>
+   <div style="margin-top:8px;font-size:14px"><b>Feeds:</b> ${kids.length?kids.map(k=>{const d=BY_ASSET[k];return d?`<button class="btn small" style="margin:3px 4px 0 0" onclick="goToAsset('${esc(k)}')">${esc(d.ref)}</button>`:''}).join(''):'<span class="muted">nothing recorded yet</span>'}</div>
+   <button class="btn small" style="margin-top:8px" onclick="openTree(bKey(curMap()))">View board tree</button>`;
+}
+function parentSearch(){const q=(S.psearch||'').trim().toLowerCase(),el=document.getElementById('presults');if(!el)return;if(q.length<2){el.innerHTML='';return}
+  const a=curPin().asset;el.innerHTML=DBS.filter(d=>d.asset!==a&&!isDesc(a,d.asset)&&(d.name+' '+d.building+' '+d.room+' '+d.asset).toLowerCase().includes(q)).slice(0,15).map(d=>`<button class="res" onclick="setParent('${esc(d.asset)}')"><b>${esc(d.ref)}</b> ${esc(d.building)}, ${esc(d.room)}</button>`).join('')||'<p class="hint">No boards match that.</p>'}
+function setParent(v){const a=curPin().asset;if(v&&v!=='SUPPLY'&&(v===a||isDesc(a,v))){toast('That would make a loop');return}if(v)data.parents[a]=v;else delete data.parents[a];S.psearch='';scheduleSave();renderSheet();toast(v?'Supply updated':'Supply cleared')}
+function goToAsset(asset){const at=placed()[asset];if(at){closeOv();openMap(at.map.id,at.pin.id)}else toast((BY_ASSET[asset]?.ref||'That board')+' isn\'t on a map yet')}
+function showNewDb(){
+  const m=curMap();
+  document.getElementById('newdb').innerHTML=`<div class="edit"><h3>New board</h3>
+   <div class="grid2"><div><label class="f" for="n-ref">DB reference</label><input type="text" id="n-ref" placeholder="e.g. DB/3"></div><div><label class="f" for="n-floor">Floor</label><input type="text" id="n-floor" value="Ground floor"></div></div>
+   <label class="f" for="n-room">Room / location</label><input type="text" id="n-room" placeholder="e.g. Plant room">
+   <div class="grid2"><div><label class="f" for="n-type">Board type</label><select id="n-type">${opts(['LV distribution board','Sub distribution board','Consumer unit','Panel board','Isolator / switch fuse'],'Sub distribution board',null)}</select></div><div><label class="f" for="n-eng">Engineer</label><select id="n-eng">${engOpts('','Unassigned')}</select></div></div>
+   <div class="row" style="margin-top:12px"><button class="btn primary" onclick="saveNewDb()">Add board</button><button class="btn" onclick="renderBoard()">Cancel</button></div></div>`;
+  document.getElementById('n-ref').focus();
+}
+function saveNewDb(){
+  const ref=document.getElementById('n-ref').value.trim();if(!ref){toast('Give the board a reference');return}
+  const m=curMap(),d={asset:'NEW-'+uid(),ref,name:document.getElementById('n-type').value+'   '+ref,building:bKey(m),floor:document.getElementById('n-floor').value.trim(),room:document.getElementById('n-room').value.trim(),engineer:document.getElementById('n-eng').value,wk:null,custom:true};
+  data.customDbs.push(d);rebuildDbs();linkDb(d.asset);
+}
+function setAssign(asset,name){data.engOverride[asset]=name;rebuildDbs();scheduleSave();toast(name?'Assigned to '+name:'Board unassigned')}
+function searchDb(){
+  const q=S.search.trim().toLowerCase(),el=document.getElementById('results');if(!el)return;
+  if(q.length<2){el.innerHTML='';return}
+  const pl=placed(),p=curPin();
+  const hits=DBS.filter(d=>(d.asset+' '+d.name+' '+d.building+' '+d.room).toLowerCase().includes(q)).slice(0,25);
+  el.innerHTML=hits.map(d=>{const at=pl[d.asset],taken=at&&at.pin.id!==p.id;return `<button class="res" ${taken?'disabled':''} onclick="linkDb('${esc(d.asset)}')"><b>${esc(d.ref)}</b> ${esc(d.building)}, ${esc(d.room)}<br><span class="muted">${d.custom?'Added by you':esc(d.asset)}${taken?', already placed on '+esc(at.map.name):''}</span></button>`}).join('')||'<p class="hint">No boards match that.</p>';
+}
+function linkDb(asset){const p=curPin();p.asset=asset;S.search='';scheduleSave();drawPins();renderSheet();if(asset)toast('Linked to '+BY_ASSET[asset].ref)}
+function setPin(f,v){const p=curPin();p[f]=f==='num'?(v.trim()||p.num):v;if(f==='num'){drawPins();refreshHead()}scheduleSave()}
+async function removePin(){
+  const p=curPin();for(const g of [...p.diagrams,...p.photos])await sdel(KFILE+g.id);
+  const m=meta(S.mapId);m.pins=m.pins.filter(x=>x.id!==p.id);
+  m.pins.forEach(x=>(x.cables||[]).forEach(c=>{if(c.to===p.id)c.to=null}));
+  S.pinId=null;renderSheet();drawAll();scheduleSave();toast('Pin '+p.num+' removed');
+}
+
+/* ---- circuits tab ---- */
+function renderCircuits(){
+  const p=curPin();
+  const sorted=[...p.circuits].sort((a,b)=>String(a.no).localeCompare(String(b.no),undefined,{numeric:true}));
+  let h=`<h3>Cables on the map</h3>`;
+  h+=p.cables.map(cb=>{const ci=p.circuits.find(c=>c.id===cb.circuit),t=CT[cb.type]||CT.other,to=cb.to&&pinsOf(S.mapId).find(x=>x.id===cb.to);
+    return `<button class="item" onclick="openCable('${p.id}','${cb.id}')"><i class="sw" style="background:${cb.type==='bonding'?`repeating-linear-gradient(180deg,${t.c} 0 6px,#F2C400 6px 12px)`:t.c}"></i><span><b>${esc(ci?circuitLabel(ci):(cb.powers||'Cable'))}</b><br>${esc([cb.cable,cb.size?cb.size+' mm²':''].filter(Boolean).join(', ')||'Details not set')}${to?', to pin '+esc(to.num):''}${symCounts(cb.id)?'<br>'+esc(symCounts(cb.id)):''}</span><em>${esc(t.l)}</em></button>`}).join('')||'<p class="hint" style="margin-top:2px">No cables drawn yet.</p>';
+  h+=`<button class="btn primary wide" style="margin-top:10px" onclick="startDraw()">Draw a cable from this board</button>`;
+  h+=`<h3>Circuit schedule</h3>`+aiBlock();
+  h+=sorted.map(ci=>S.editCircuit===ci.id?circuitForm(ci):`<button class="item" onclick="S.editCircuit='${ci.id}';renderCircuits()"><i class="sw" style="background:${(CT[ci.type]||CT.other).c}"></i><span><b>${esc(ci.no?'C'+ci.no:'–')} ${esc(ci.desc||'No description')}</b><br>${esc([ci.curve&&ci.curve!=='–'?ci.curve+(ci.rating||''):ci.rating?ci.rating+' A':'',ci.device,ci.rcd&&ci.rcd!=='None'?ci.rcd:'',ci.cable,ci.size?ci.size+' mm²':''].filter(Boolean).join(', '))}</span></button>`).join('')||'<p class="hint" style="margin-top:2px">No circuits added yet.</p>';
+  if(S.editCircuit==='new')h+=circuitForm({id:'new',type:'power',device:'MCB',curve:'B',rcd:'None'});
+  else h+=`<button class="btn wide" style="margin-top:10px" onclick="S.editCircuit='new';renderCircuits()">+ Add circuit</button>`;
+  document.getElementById('sbody').innerHTML=h;
+  const f=document.getElementById('ci-no');if(f&&S.editCircuit==='new')f.focus();
+}
+function circuitForm(ci){
+  return `<div class="edit" id="ciform"><h3>${ci.id==='new'?'New circuit':'Edit circuit'}</h3>
+   <div class="grid2"><div><label class="f" for="ci-no">Circuit / way</label><input type="text" id="ci-no" value="${esc(ci.no||'')}" placeholder="e.g. 3 or L2-3"></div><div><label class="f" for="ci-type">Type</label><select id="ci-type">${opts(CTYPES.map(c=>[c[0],c[1]]),ci.type,null)}</select></div></div>
+   <label class="f" for="ci-desc">What it powers</label><input type="text" id="ci-desc" list="powers" value="${esc(ci.desc||'')}" placeholder="e.g. Kitchen sockets">
+   <div class="grid3"><div><label class="f" for="ci-dev">Device</label><select id="ci-dev">${opts(DEVICES,ci.device,null)}</select></div><div><label class="f" for="ci-curve">Curve</label><select id="ci-curve">${opts(CURVES,ci.curve,null)}</select></div><div><label class="f" for="ci-rat">Rating (A)</label><select id="ci-rat">${opts(RATINGS,ci.rating)}</select></div></div>
+   <label class="f" for="ci-rcd">RCD protection</label><select id="ci-rcd">${opts(RCDS,ci.rcd,null)}</select>
+   <div class="grid2"><div><label class="f" for="ci-cab">Cable type</label><select id="ci-cab">${opts(CABLES,ci.cable)}</select></div><div><label class="f" for="ci-size">Size (mm²)</label><select id="ci-size">${opts(SIZES,ci.size)}</select></div></div>
+   <datalist id="powers">${POWERS.map(x=>`<option value="${esc(x)}">`).join('')}</datalist>
+   <div class="row" style="margin-top:12px"><button class="btn primary" onclick="saveCircuit('${ci.id}')">${ci.id==='new'?'Add circuit':'Save circuit'}</button><button class="btn" onclick="S.editCircuit=null;renderCircuits()">Cancel</button>${ci.id!=='new'?`<button class="btn danger" onclick="armed(this,()=>deleteCircuit('${ci.id}'))">Delete</button>`:''}</div></div>`;
+}
+function saveCircuit(id){
+  const p=curPin(),v=k=>document.getElementById(k).value;
+  const vals={no:v('ci-no').trim(),type:v('ci-type'),desc:v('ci-desc').trim(),device:v('ci-dev'),curve:v('ci-curve'),rating:v('ci-rat'),rcd:v('ci-rcd'),cable:v('ci-cab'),size:v('ci-size')};
+  if(id==='new')p.circuits.push({id:uid(),...vals});else Object.assign(p.circuits.find(c=>c.id===id),vals);
+  if(id!=='new')p.cables.filter(cb=>cb.circuit===id).forEach(cb=>Object.assign(cb,{type:vals.type,cable:vals.cable||cb.cable,size:vals.size||cb.size,powers:vals.desc||cb.powers}));
+  S.editCircuit=null;scheduleSave();renderSheet();drawAll();toast(id==='new'?'Circuit added':'Circuit saved');
+}
+function deleteCircuit(id){const p=curPin();p.circuits=p.circuits.filter(c=>c.id!==id);p.cables.forEach(cb=>{if(cb.circuit===id)cb.circuit=''});S.editCircuit=null;scheduleSave();renderSheet();drawAll()}
+
+const AI_PROMPT=`You are reading a UK electrical distribution board photo, circuit chart, or an EICR schedule of circuits. List every circuit you can read.
+Reply with ONLY a JSON array and no other text. One row per circuit, in this order:
+["circuit no","what it powers","type","device","curve","rating A","rcd","cable","size mm2"]
+type: lighting, power, bonding, submain, emergency or other.
+device: MCB, RCBO, MCCB, BS 88 fuse, BS 1361 fuse, BS 3036 rewireable, Isolator / switch or Spare.
+curve: B, C, D or –.
+rcd: 30 mA RCBO, Via 30 mA RCD, Via 100 mA RCD, Via 300 mA RCD or None.
+cable: e.g. 6242Y twin & earth, SWA 3-core, LSZH singles (6491B), FP200 / fire resistant, or "".
+Use "" for anything you cannot read. Never guess values that are not visible. Keep descriptions short.`;
+function aiBlock(){
+  const a=S.ai;
+  if(!a||a.pin!==S.pinId)return `<label class="btn wide" style="margin:6px 0 4px">Read circuits from a photo or EICR<input type="file" accept="image/*,application/pdf" hidden onchange="aiRead(this)"></label><p class="hint" style="margin:0 0 6px">Take a photo of the circuit chart or board, or upload an old EICR. You check the results before anything is added.</p>`;
+  if(a.loading)return `<div class="card">Reading ${esc(a.name)}… this takes around 20 seconds.</div>`;
+  if(a.error)return `<div class="warn" style="margin-top:8px">${esc(a.error)}</div><button class="btn small" onclick="S.ai=null;renderCircuits()">OK</button>`;
+  return `<div class="edit"><h3>Found ${plural(a.rows.length,'circuit')}</h3><p class="hint" style="margin-top:0">Untick anything that's wrong. Matching circuit numbers are updated, new ones are added.</p>
+   ${a.rows.map((r,i)=>`<label class="airow"><input type="checkbox" ${r.on?'checked':''} onchange="S.ai.rows[${i}].on=this.checked"><span><b>${esc(r.no?'C'+r.no:'–')} ${esc(r.desc||'No description')}</b><br>${esc([r.curve&&r.curve!=='–'?r.curve+(r.rating||''):r.rating?r.rating+' A':'',r.device,r.rcd&&r.rcd!=='None'?r.rcd:'',r.cable,r.size?r.size+' mm²':'',(CT[r.type]||CT.other).l].filter(Boolean).join(', '))}</span></label>`).join('')}
+   <div class="row" style="margin-top:10px"><button class="btn primary" onclick="aiAdd()">Add ticked circuits</button><button class="btn" onclick="S.ai=null;renderCircuits()">Cancel</button></div>
+   ${a.rows.length>=28?'<p class="hint">Big boards may run past what can be read in one go. If circuits are missing, photograph the rest separately.</p>':''}</div>`;
+}
+const pick=(list,v)=>{if(!v)return '';const s=String(v).toLowerCase().trim();return list.find(x=>x.toLowerCase()===s)||list.find(x=>x.toLowerCase().includes(s)||s.includes(x.toLowerCase()))||''};
+function normRow(r){const [no,desc,type,device,curve,rating,rcd,cable,size]=r.map(x=>x==null?'':String(x).trim());
+  const t=CTYPES.find(c=>c[0]===type.toLowerCase())?type.toLowerCase():(/light/i.test(type+desc)?'lighting':/bond|earth/i.test(type)?'bonding':/emerg/i.test(type)?'emergency':/sub|feed|db/i.test(type)?'submain':'power');
+  const rt=(rating.match(/\d+/)||[''])[0],sz=(size.match(/\d+(\.\d+)?/)||[''])[0];
+  return{on:true,no:no.replace(/^c(?=\d)/i,''),desc,type:t,device:pick(DEVICES,device)||(device?'':''),curve:['B','C','D'].includes(curve.toUpperCase())?curve.toUpperCase():'–',rating:RATINGS.includes(rt)?rt:'',rcd:pick(RCDS,rcd)||'None',cable:pick(CABLES,cable),size:SIZES.find(x=>parseFloat(x)===parseFloat(sz))||''}}
+function parseRows(text){
+  const t=text.replace(/\`\`\`json|\`\`\`/g,'').trim();
+  try{const j=JSON.parse(t);const arr=Array.isArray(j)?j:(j.circuits||[]);return arr.filter(Array.isArray)}catch(e){}
+  const rows=[];for(const m of t.matchAll(/\[\s*"[^\[\]]*\]/g)){try{const r=JSON.parse(m[0]);if(Array.isArray(r)&&r.length>=2)rows.push(r)}catch(e){}}return rows;
+}
+async function aiRead(inp){
+  const f=inp.files[0];if(!f)return;const pid=S.pinId;S.ai={pin:pid,loading:true,name:f.name};renderCircuits();
+  try{
+    let block;
+    if(f.type==='application/pdf'){const raw=await readFile(f);if(raw.length>9e6)throw new Error('That PDF is too big. Try just the schedule of circuits pages, or a photo of them.');block={type:'document',source:{type:'base64',media_type:'application/pdf',data:raw.split(',')[1]}}}
+    else{const c=await compressImage(await readFile(f),1800,.85);block={type:'image',source:{type:'base64',media_type:'image/jpeg',data:c.data.split(',')[1]}}}
+    let text;
+    if(CLOUD){const j=await api('readCircuits',{media_type:block.type==='document'?'application/pdf':'image/jpeg',data:block.source.data,prompt:AI_PROMPT});text=j.text}
+    else{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:[block,{type:'text',text:AI_PROMPT}]}]})});
+    if(!res.ok)throw new Error('Reading failed ('+res.status+'). Connect to your team backend in Site settings, or open the app inside Claude.');
+    const j=await res.json();text=(j.content||[]).map(i=>i.type==='text'?i.text:'').join('\n')}
+    const rows=parseRows(text).map(normRow).filter(r=>r.no||r.desc);
+    S.ai=rows.length?{pin:pid,rows}:{pin:pid,error:'No circuits could be read. Try a sharper, straight-on photo of the circuit chart.'};
+  }catch(e){S.ai={pin:pid,error:e.message&&!/fetch/i.test(e.message)?e.message:(CLOUD?'Couldn\'t reach the team backend. Check your connection.':'Couldn\'t reach the reader. Connect to your team backend in Site settings, or open the app inside Claude.')}}
+  if(S.pinId===pid&&S.tab==='circuits'&&!S.cableId)renderCircuits();
+}
+function aiAdd(){
+  const p=curPin(),rows=S.ai.rows.filter(r=>r.on);let add=0,upd=0;
+  for(const r of rows){const {on,...v}=r;const ex=v.no&&p.circuits.find(c=>String(c.no)===String(v.no));
+    if(ex){for(const k in v)if(v[k])ex[k]=v[k];upd++}else{p.circuits.push({id:uid(),...v});add++}}
+  S.ai=null;scheduleSave();renderSheet();toast([add?plural(add,'circuit')+' added':'',upd?upd+' updated':''].filter(Boolean).join(', ')||'Nothing added');
+}
+
+/* ---- cable sheet ---- */
+function renderCableSheet(el,p){
+  const cb=p.cables.find(c=>c.id===S.cableId);if(!cb){S.cableId=null;renderSheet();return}
+  const d=BY_ASSET[p.asset],t=CT[cb.type]||CT.other,to=cb.to&&pinsOf(S.mapId).find(x=>x.id===cb.to),toDb=to&&BY_ASSET[to.asset],k=sheetKeep(el,'c'+cb.id);
+  el.innerHTML=`<div class="sheet cable${k.still}" role="dialog" aria-label="Cable"><div class="shead"><div class="bign" style="background:${t.c}">⌇</div><div class="st"><b>Cable from ${esc(d?d.ref:'pin '+p.num)}</b>${to?'Connects to pin '+esc(to.num)+(toDb?' ('+esc(toDb.ref)+')':''):esc(t.l)}</div><button class="close" onclick="S.cableId=null;S.tab='circuits';renderSheet();drawAll()">‹ Board</button></div>
+   <div class="sbody">
+   <label class="f" for="cb-ci">Circuit in ${esc(d?d.ref:'this board')}</label><select id="cb-ci" onchange="cableCircuit(this.value)">${opt('','Not linked to a circuit',cb.circuit)}${p.circuits.map(ci=>opt(ci.id,circuitLabel(ci),cb.circuit)).join('')}</select>
+   ${p.circuits.length?'':'<p class="hint">Add circuits on the Circuits tab to pick them here.</p>'}
+   <label class="f" for="cb-type">Circuit type</label><select id="cb-type" onchange="setCab('type',this.value)">${opts(CTYPES.map(c=>[c[0],c[1]]),cb.type,'Select…')}</select>
+   <div class="grid2"><div><label class="f" for="cb-cab">Cable type</label><select id="cb-cab" onchange="setCab('cable',this.value)">${opts(CABLES,cb.cable)}</select></div><div><label class="f" for="cb-size">Size (mm²)</label><select id="cb-size" onchange="setCab('size',this.value)">${opts(SIZES,cb.size)}</select></div></div>
+   <label class="f" for="cb-pow">What it powers</label><input type="text" id="cb-pow" list="powers2" value="${esc(cb.powers||'')}" oninput="setCab('powers',this.value)"><datalist id="powers2">${POWERS.map(x=>`<option value="${esc(x)}">`).join('')}</datalist>
+   <div class="card">${symCounts(cb.id)?'On this cable: '+esc(symCounts(cb.id)):'No lights or points on this cable yet.'}<br><button class="btn small primary" style="margin-top:8px" onclick="startSyms('${defKind(cb.type)}',{pin:'${p.id}',cab:'${cb.id}'})">Add points to this cable</button></div>
+   <label class="f" for="cb-notes">Notes</label><textarea id="cb-notes" placeholder="Route, containment, length" oninput="setCab('notes',this.value)">${esc(cb.notes||'')}</textarea>
+   <div class="row" style="margin-top:14px"><button class="btn small" onclick="startAdjust()">Adjust route</button><button class="btn small" onclick="startDraw('${cb.id}')">Redraw route</button><button class="btn small danger" onclick="armed(this,deleteCable)">Delete cable</button></div>
+   </div></div>`;
+  k.restore();
+}
+function curCable(){return curPin().cables.find(c=>c.id===S.cableId)}
+function setCab(k,v){const cb=curCable();cb[k]=v;scheduleSave();if(k==='type'||k==='size')drawCables();if(k==='type'){const b=document.querySelector('.sheet .bign'),t=CT[v]||CT.other;if(b)b.style.background=t.c}}
+function cableCircuit(id){const p=curPin(),cb=curCable(),ci=p.circuits.find(c=>c.id===id);cb.circuit=id;if(ci){Object.assign(cb,{type:ci.type||cb.type,cable:ci.cable||cb.cable,size:ci.size||cb.size,powers:ci.desc||cb.powers});
+  const set=(i,v)=>{const e=document.getElementById(i);if(e)e.value=v||''};set('cb-type',cb.type);set('cb-cab',cb.cable);set('cb-size',cb.size);set('cb-pow',cb.powers);
+  const b=document.querySelector('.sheet .bign');if(b)b.style.background=(CT[cb.type]||CT.other).c;toast('Filled from '+circuitLabel(ci))}
+  scheduleSave();drawCables()}
+function deleteCable(){const p=curPin();p.cables=p.cables.filter(c=>c.id!==S.cableId);S.cableId=null;S.tab='circuits';scheduleSave();renderSheet();drawAll()}
+
+/* ---- checks tab ---- */
+function renderChecks(){
+  const p=curPin(),c=p.checks,r=rcdDue(p),d=BY_ASSET[p.asset];
+  let h=`<div class="grid2"><div><label class="f" for="c-date">Check date</label><input type="date" id="c-date" value="${esc(c.date||'')}" onchange="setC('date',this.value)"></div>
+   <div style="display:flex;align-items:flex-end"><button class="btn small wide" style="margin-bottom:2px" onclick="setAllOk()">Set blanks to OK</button></div></div>
+   <button class="btn wide" style="margin-top:10px" onclick="exportBoardXlsx()">Download this check to Excel</button>
+   <div class="remind"><label class="f" for="rm-freq" style="margin-top:0">Remind me to check again</label>
+    <div class="grid2"><select id="rm-freq" onchange="setReminder(this.value)">${opts([['','Don\'t remind'],['1','Every month'],['3','Every 3 months'],['6','Every 6 months'],['12','Every 12 months']],c.remindFreq||'',null)}</select>
+    <input type="date" id="rm-date" value="${esc(c.nextDue||'')}" onchange="setNextDue(this.value)" aria-label="Next due date"></div>
+    ${c.nextDue?`<p class="hint" style="margin:8px 0 0">Next due ${fmt(c.nextDue)}${daysTo(c.nextDue)<0?', overdue':daysTo(c.nextDue)<=30?', due soon':''}.</p>
+    <div class="row" style="margin-top:8px"><button class="btn small" onclick="downloadNextDue()">Download reminder</button><a class="btn small" href="${esc(gcalLink({title:'DB check due: '+(d?d.ref:'Pin '+p.num),start:c.nextDue,endEx:ymd(new Date(toD(c.nextDue).getTime()+864e5)),desc:'Routine check due at '+(d?d.ref+', '+d.room:'pin '+p.num)+'.'},d&&d.engineer))}" target="_blank" rel="noopener">Add to Google Calendar</a></div>`
+    :`<p class="hint" style="margin:8px 0 0">Pick a frequency to set the next due date automatically, or set a date directly.</p>`}</div>`;
+  for(const f of FIELDS){
+    if(f.g)h+=`<h3>${f.g}</h3>`;
+    if(f.k==='AF'){h+=remedialSection(p)}
+    let v=c[f.k]||'';const auto=f.k==='AD'&&p.remedials.length;
+    if(auto)v=CODES.find(x=>x[0]===worstCode(p))?.[1]||'None';
+    const cls=isBad(f,v)?'bad':isGood(f,v)?'good':'';
+    h+=`<div class="fld"><span>${esc(f.l)}${auto?'<br><small class="muted">Set from remedials</small>':''}</span>${f.t==='text'
+      ?`<input type="text" inputmode="decimal" placeholder="${esc(f.ph)}" value="${esc(v)}" oninput="setC('${f.k}',this.value)" aria-label="${esc(f.l)}">`
+      :`<select class="${cls}" ${auto?'disabled':''} onchange="setC('${f.k}',this.value,this)" aria-label="${esc(f.l)}">${f.eng?engOpts(v,'–'):opt('','–',v)+f.o.map(o=>opt(o,o,v)).join('')}</select>`}</div>`;
+    if(f.k==='W'){
+      const rv=c.RCD6||'',rc=rv==='Fail'?'bad':rv==='Pass'?'good':'';
+      h+=`<div class="fld"><span>RCD 6-monthly test (test button)</span><select class="${rc}" onchange="setC('RCD6',this.value,this,true)" aria-label="RCD 6-monthly test">${opts(RCD6,rv)}</select></div>
+      <div class="fld"><span>RCD test date${r?`<br><small style="color:${r.days<0?'var(--red)':r.days<=30?'var(--amber)':'var(--muted)'}">Next due ${fmt(r.next)}${r.days<0?', overdue':''}</small>`:''}</span><input type="date" value="${esc(c.RCD6date||'')}" onchange="setC('RCD6date',this.value);renderChecks()" aria-label="RCD test date"></div>`;
+    }
+  }
+  h+=`<p class="hint">Picking an engineer in sign-off marks the board complete. Any Not OK, No, IR fail, RCD fail or open C1, C2 or FI remedial turns the pin red.</p>`;
+  document.getElementById('sbody').innerHTML=h;
+}
+function remedialSection(p){
+  let h=`<div style="margin:6px 0 4px"><b style="font-size:15px">Remedial actions</b></div>`;
+  h+=p.remedials.map((r,i)=>{const col=r.status==='Completed'?'var(--ok)':r.code==='C3'?'var(--amber)':r.code?'var(--red)':'var(--grey)';
+    return `<div class="rem" style="border-left-color:${col}">
+     <div class="grid2"><div><label class="f">Code</label><select onchange="setRem('${r.id}','code',this.value)">${opts(CODES,r.code,'Select…')}</select></div><div><label class="f">Status</label><select onchange="setRem('${r.id}','status',this.value)">${opts(REM_STATUS,r.status||'Open',null)}</select></div></div>
+     <label class="f">Regulation breached</label><select onchange="setRem('${r.id}','reg',this.value)">${opt('','Select…',r.reg)}${REGS.map(g=>opt(g[0],g[0]+' – '+g[1],r.reg)).join('')}${opt('Other','Other (type below)',r.reg)}</select>
+     ${r.reg==='Other'?`<input type="text" style="margin-top:6px" placeholder="Regulation number" value="${esc(r.regOther||'')}" oninput="setRem('${r.id}','regOther',this.value,true)">`:''}
+     <label class="f">Observation</label><textarea placeholder="What you found and where" oninput="setRem('${r.id}','obs',this.value,true)">${esc(r.obs||'')}</textarea>
+     <label class="f">Action</label><select onchange="setRem('${r.id}','action',this.value)">${opts(ACTIONS,r.action,'Select…')}</select>
+     <div class="row" style="margin-top:8px"><button class="btn small danger" onclick="armed(this,()=>delRem('${r.id}'),'Tap again to remove')">Remove remedial ${i+1}</button></div></div>`}).join('');
+  h+=`<button class="btn wide" style="margin:10px 0 6px" onclick="addRem()">+ Add remedial</button>`;
+  if(p.remedials.length)h+=`<p class="hint" style="margin:0 0 6px">Every remedial also appears in Remedials on the home screen, where you can quote, test and complete it. Regulation numbers follow BS 7671:2018. Check them against Amendment 4 before issuing a report.</p>`;
+  return h;
+}
+function addRem(){const p=curPin();p.remedials.push({id:uid(),code:'',reg:'',regOther:'',obs:'',action:'',status:'Open',raised:today()});if(!p.checks.date)p.checks.date=today();scheduleSave();renderChecks()}
+function setRem(id,k,v,quiet){const r=curPin().remedials.find(x=>x.id===id);r[k]=v;scheduleSave();if(!quiet){renderChecks();refreshHead();drawPins()}}
+function delRem(id){const p=curPin();p.remedials=p.remedials.filter(x=>x.id!==id);scheduleSave();renderChecks();refreshHead();drawPins()}
+function setC(k,v,el,rcd){
+  const p=curPin(),c=p.checks;c[k]=v;
+  if(k!=='date'&&k!=='RCD6date'&&v&&!c.date){c.date=today();const d=document.getElementById('c-date');if(d)d.value=c.date}
+  if(k==='RCD6'&&v&&v!=='N/A – no RCD'&&!c.RCD6date){c.RCD6date=today();scheduleSave();renderChecks();refreshHead();drawPins();return}
+  if(el){if(rcd)el.className=v==='Fail'?'bad':v==='Pass'?'good':'';else{const f=FIELDS.find(x=>x.k===k);el.className=isBad(f,v)?'bad':isGood(f,v)?'good':''}}
+  refreshHead();drawPins();scheduleSave();
+}
+function setReminder(freq){const p=curPin(),c=p.checks;c.remindFreq=freq;if(freq)c.nextDue=addMonths(c.date||today(),+freq);else delete c.nextDue;scheduleSave();renderChecks()}
+function setNextDue(v){const p=curPin(),c=p.checks;if(v)c.nextDue=v;else delete c.nextDue;scheduleSave();renderChecks()}
+function downloadNextDue(){
+  const p=curPin(),c=p.checks,d=BY_ASSET[p.asset];if(!c.nextDue)return;
+  const e={uid:'next'+p.id+c.nextDue,title:'DB check due: '+(d?d.ref:'Pin '+p.num),start:c.nextDue,endEx:ymd(new Date(toD(c.nextDue).getTime()+864e5)),desc:'Routine check due at '+(d?d.ref+', '+d.room:'pin '+p.num)+'.',attName:d&&d.engineer,attEmail:d&&engByName(d.engineer)?.email};
+  download('db-check-reminder.ics',buildIcs([e]),'text/calendar');toast('Reminder downloaded');
+}
+async function exportBoardXlsx(){
+  const p=curPin(),c=p.checks,m=curMap(),d=BY_ASSET[p.asset]||{};toast('Building spreadsheet…');
+  try{
+    await loadScript(XLSX_CDN);
+    const r=rcdDue(p),vals={...c,AD:p.remedials.length?(CODES.find(x=>x[0]===worstCode(p))?.[1]||'None'):c.AD,AE:remSummary(p)};
+    const checkRows=[['Field','Value'],['Map',m.name],['Pin',p.num],['DB ref',d.ref||''],['Asset code',d.custom?'':(d.asset||'')],['Building',d.building||buildingOf(m)],['Floor',d.floor||''],['Room',d.room||''],['Engineer',d.engineer||''],
+      ['Check date',c.date||''],...FIELDS.map(f=>[f.l,vals[f.k]||'']),['RCD 6-monthly test',c.RCD6||''],['RCD test date',c.RCD6date||''],['RCD next due',r?r.next:''],['Next check due',c.nextDue||''],['Notes',p.notes||'']];
+    const circRows=[['Circuit','Description','Type','Device','Curve','Rating (A)','RCD','Cable','Size (mm²)'],...p.circuits.map(ci=>[ci.no,ci.desc,(CT[ci.type]||{}).l||ci.type,ci.device,ci.curve,ci.rating,ci.rcd,ci.cable,ci.size])];
+    const remRows2=[['Code','Regulation','Observation','Action','Status','Raised','Quote (£)','Test result','Completed date','Completed by','Job notes'],...p.remedials.map(rr=>[rr.code,rr.reg==='Other'?rr.regOther:rr.reg,rr.obs,rr.action,rr.status||'Open',rr.raised||'',rr.quote||'',rr.testResult||'',rr.completedDate||'',rr.completedBy||'',rr.jobNotes||''])];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(checkRows),'Check');
+    if(p.circuits.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(circRows),'Circuits');
+    if(p.remedials.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(remRows2),'Remedials');
+    const buf=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([buf],{type:'application/octet-stream'}));
+    a.download=(d.ref||'pin-'+p.num).replace(/[^\w-]+/g,'_')+'-check-'+today()+'.xlsx';document.body.appendChild(a);a.click();a.remove();
+    toast('Excel file downloaded');
+  }catch(e){toast('Could not build the file: '+e.message)}
+}
+function setAllOk(){const p=curPin(),c=p.checks;let n=0;FIELDS.forEach(f=>{if(!c[f.k]&&f.o===OK){c[f.k]='OK';n++}});if(!c.date)c.date=today();renderChecks();refreshHead();drawPins();scheduleSave();toast(n?plural(n,'check')+' set to OK':'No blank OK checks left')}
+
+/* ---- files tab ---- */
+function renderDiagrams(){
+  const p=curPin(),list=p.diagrams;
+  document.getElementById('sbody').innerHTML=`${list.map(g=>`<div class="diag">${g.type==='img'?`<img class="th" src="${g.thumb}" alt="">`:'<div class="th">PDF</div>'}<span>${esc(g.name)}</span><button class="btn small" onclick="viewFile('${g.id}','diagrams')">View</button><button class="btn small danger" onclick="armed(this,()=>removeFile('${g.id}','diagrams'),'Delete?')" aria-label="Delete ${esc(g.name)}">✕</button></div>`).join('')||'<p class="hint">No files yet. Add a scanned circuit chart, a single-line diagram or a test certificate.</p>'}
+   <label class="btn primary wide" style="margin-top:14px">Add wiring diagram or PDF<input type="file" accept="image/*,application/pdf" multiple hidden onchange="addFiles(this,'diagrams')"></label>
+   <p class="hint">Photos are resized automatically. PDFs need to be under about 3 MB. Board photos live on the Board tab.</p>`;
+}
+async function addFiles(inp,kind){
+  const p=curPin(),files=[...inp.files];if(!files.length)return;toast('Adding…');let n=0;
+  for(const f of files){try{const id=uid(),raw=await readFile(f);
+    if(f.type==='application/pdf'){if(kind==='photos'){toast('Photos need to be images');continue}if(raw.length>4.4e6){toast(f.name+' is too big. Screenshot the pages instead.');continue}if(!await sset(KFILE+id,raw)){toast('Could not save '+f.name);continue}p[kind].push({id,name:f.name,type:'pdf'})}
+    else{const big=await compressImage(raw,2400,.85),th=await compressImage(raw,240,.7);if(!await sset(KFILE+id,big.data)){toast('Could not save '+f.name);continue}p[kind].push({id,name:f.name,type:'img',thumb:th.data})}
+    queueUpload(KFILE+id,'f_'+id);n++}catch(e){toast(f.name+' could not be read')}}
+  await saveData();renderSheet();if(n)toast(plural(n,kind==='photos'?'photo':'file')+' added');
+}
+
+/* ============ schedule planner ============ */
+const addDays=(s,n)=>ymd(new Date(toD(s).getTime()+n*864e5));
+function weekEvent(wk,name,list){const w=WEEKS[wk];return{uid:'dbwk'+wk+(name||'x').replace(/\W/g,''),title:`DB checks week ${wk}${name?' – '+name:''}: ${plural(list.length,'board')}`,start:w[2],endEx:addDays(w[2],5),
+  desc:list.map(d=>`${d.ref} – ${d.building}, ${d.room}`).join('\n'),attName:name,attEmail:engByName(name)?.email||''}}
+function openPlan(){
+  const body=document.querySelector('#ovl .body'),top=body&&S.view2==='plan'?body.scrollTop:0;S.view2='plan';
+  const wk=S.planWk=S.planWk||currentWeek(),w=WEEKS[wk],list=DBS.filter(d=>d.wk===wk);
+  const names=engNames(),by=n=>list.filter(d=>(d.engineer||'')===n),unas=by('');
+  const wkOpts=sel=>Object.keys(WEEKS).map(k=>opt(k,'Week '+k+' ('+WEEKS[k][0]+')',sel)).join('');
+  let h=`<div class="ov"><header><button class="hbtn" onclick="S.view2='';closeOv();renderHome()">‹ Back</button><h1>Schedule</h1>${SB()}</header><div class="body"><div class="wrap">
+   <div class="row" style="flex-wrap:nowrap"><button class="btn" onclick="S.planWk=Math.max(1,S.planWk-1);openPlan()" aria-label="Previous week" ${wk<=1?'disabled':''}>‹</button>
+   <select onchange="S.planWk=+this.value;openPlan()" aria-label="Week">${wkOpts(wk)}</select>
+   <button class="btn" onclick="S.planWk=Math.min(${Object.keys(WEEKS).length},S.planWk+1);openPlan()" aria-label="Next week" ${wk>=Object.keys(WEEKS).length?'disabled':''}>›</button></div>
+   <p class="hint">${esc(w[0])} to ${esc(w[1])}, ${plural(list.length,'board')}. Change the engineer or week on any board, or mark someone as off to share out their boards.</p>
+   <h2>Who's where</h2>`;
+  h+=[...names,...(unas.length?['']:[])].map(n=>{const ds=by(n),bl=[...new Set(ds.map(d=>d.building))];
+    return `<div class="who" style="border-left-color:${engColor(n)}"><b>${esc(n||'Unassigned')}</b><div class="meta">${ds.length?plural(ds.length,'board')+' at '+esc(bl.join(', ')):'Nothing booked this week'}</div>
+     ${n&&ds.length?(S.offEng===n?`<div class="edit"><p style="margin:8px 0 0;font-size:15px">Move ${esc(n)}'s ${plural(ds.length,'board')} this week to:</p><select id="off-to" style="margin-top:6px">${opt('__share','Share between the others','__share')}${names.filter(x=>x!==n).map(x=>opt(x,x,'')).join('')}</select>
+       <div class="row" style="margin-top:8px"><button class="btn primary" data-n="${esc(n)}" onclick="offWeek(this.dataset.n)">Move boards</button><button class="btn" onclick="S.offEng=null;openPlan()">Cancel</button></div></div>`
+       :`<button class="btn small" onclick="S.offEng=this.dataset.n;openPlan()" data-n="${esc(n)}">Off this week</button>`):''}</div>`}).join('');
+  h+=`<h2>Boards this week</h2>`;
+  for(const n of [...names,'']){const ds=by(n);if(!ds.length)continue;
+    h+=`<h3 style="color:${engColor(n)}">${esc(n||'Unassigned')}</h3>`+ds.map(d=>`<div class="prow"><div class="t"><b>${esc(d.ref)}</b>${d.changed?'<span class="chg">Changed</span>':''}<br>${esc(d.building)}, ${esc(d.room)}</div>
+     <div class="grid2"><select aria-label="Engineer for ${esc(d.ref)}" onchange="planSet('${esc(d.asset)}','e',this.value)">${engOpts(d.engineer,'Unassigned')}</select><select aria-label="Week for ${esc(d.ref)}" onchange="planSet('${esc(d.asset)}','w',this.value)">${wkOpts(d.wk)}</select></div></div>`).join('')}
+  const emails=names.map(n=>engByName(n)?.email).filter(Boolean);
+  const mailBody=encodeURIComponent(`DB checks week ${wk} (${w[0]} to ${w[1]}):\n\n`+names.map(n=>{const ds=by(n);return ds.length?n+':\n'+ds.map(d=>'  '+d.ref+' – '+d.building+', '+d.room).join('\n'):''}).filter(Boolean).join('\n\n'));
+  h+=`<h2>Send to Google Calendar</h2><p class="hint" style="margin-top:0">Each link opens Google Calendar with that engineer's week filled in and them added as a guest. Tap Save in Google and choose to send the invite.</p>`;
+  h+=names.filter(n=>by(n).length).map(n=>{const e=weekEvent(wk,n,by(n)),em=engByName(n)?.email;return `<div class="calrow"><span><b>${esc(n)}</b><br>${plural(by(n).length,'board')}${em?'':', no email saved'}</span><a href="${esc(gcalLink(e,n))}" target="_blank" rel="noopener">${em?'Invite':'Add to Google'}</a></div>`}).join('');
+  h+=`<div class="row" style="margin-top:10px">${emails.length?`<a class="btn" href="mailto:${esc(emails.join(','))}?subject=${encodeURIComponent('DB schedule week '+wk+' (updated)')}&body=${mailBody}">Email everyone this week</a>`:''}<button class="btn" onclick="download('db-team-schedule.ics',buildIcs(teamEvents()),'text/calendar');toast('Team calendar downloaded')">Team calendar file (all weeks)</button></div>
+   <p class="hint">The team calendar file has every engineer's weeks as separate events, for importing into a shared Google Calendar.</p>
+   <h2>Reset</h2><button class="btn danger" onclick="armed(this,resetPlan,'Tap again to reset everything')">Reset all boards to the original schedule</button>
+   <p class="hint">This clears every engineer and week change, including ones from removing engineers.</p></div></div></div>`;
+  document.getElementById('ovl').innerHTML=h;updateSaveBtn();const nb=document.querySelector('#ovl .body');if(nb)nb.scrollTop=top;
+}
+function teamEvents(){const ev=[];for(const wk of Object.keys(WEEKS))for(const n of engNames()){const ds=DBS.filter(d=>d.wk===+wk&&d.engineer===n);if(ds.length)ev.push(weekEvent(+wk,n,ds))}return ev}
+function planSet(asset,k,v){if(k==='e')data.engOverride[asset]=v;else data.weekOverride[asset]=+v;rebuildDbs();scheduleSave();openPlan();toast(k==='e'?(v?'Assigned to '+v:'Unassigned'):'Moved to week '+v)}
+function offWeek(n){
+  const sel=document.getElementById('off-to').value,ds=DBS.filter(d=>d.wk===S.planWk&&d.engineer===n),others=engNames().filter(x=>x!==n);
+  if(sel==='__share'){if(!others.length){toast('No other engineers to share with');return}
+    const load=Object.fromEntries(others.map(o=>[o,DBS.filter(d=>d.wk===S.planWk&&d.engineer===o).length]));
+    for(const d of ds){const o=others.reduce((a,b)=>load[a]<=load[b]?a:b);data.engOverride[d.asset]=o;load[o]++}}
+  else ds.forEach(d=>data.engOverride[d.asset]=sel);
+  S.offEng=null;rebuildDbs();scheduleSave();openPlan();toast(plural(ds.length,'board')+' moved');
+}
+function resetPlan(){data.engOverride={};data.weekOverride={};rebuildDbs();scheduleSave();openPlan();toast('Schedule reset')}
+
+/* ============ remedials register ============ */
+function allRems(){const out=[];for(const m of allMaps())for(const p of pinsOf(m.id))for(const r of p.remedials||[])out.push({m,p,r});return out}
+const remBuilding=({m,p})=>(BY_ASSET[p.asset]||{}).building||m.name;
+function toggleRemSel(id,on){if(on)S.remSel.add(id);else S.remSel.delete(id);openRemedials()}
+function venueSelectAll(ids){ids.forEach(id=>S.remSel.add(id));openRemedials()}
+function venueSelectNone(ids){ids.forEach(id=>S.remSel.delete(id));openRemedials()}
+function openRemedials(){
+  const body=document.querySelector('#ovl .body'),top=body&&S.view2==='rem'?body.scrollTop:0;S.view2='rem';
+  const all=allRems(),q=S.remQ.trim().toLowerCase();
+  const cnt=st=>all.filter(x=>(x.r.status||'Open')===st).length;
+  const owed=all.filter(x=>['Quoted','Approved'].includes(x.r.status)).reduce((a,x)=>a+(parseFloat(x.r.quote)||0),0);
+  const shown=all.filter(x=>{const st=x.r.status||'Open';if(S.remF==='open'&&st==='Completed')return false;if(REM_STATUS.includes(S.remF)&&st!==S.remF)return false;
+    if(!q)return true;const d=BY_ASSET[x.p.asset]||{};return [d.ref,d.building,d.room,x.m.name,x.r.obs,x.r.reg,x.r.regOther,x.r.code,x.r.quoteRef].join(' ').toLowerCase().includes(q)})
+    .sort((a,b)=>['C1','C2','FI','C3',''].indexOf(a.r.code||'')-['C1','C2','FI','C3',''].indexOf(b.r.code||''));
+  const groups={};shown.forEach(x=>{const v=remBuilding(x);(groups[v]||(groups[v]=[])).push(x)});
+  const venues=Object.keys(groups).sort((a,b)=>a.localeCompare(b));
+  let h=`<div class="ov"><header><button class="hbtn" onclick="S.view2='';closeOv();renderHome()">‹ Back</button><h1>Remedials</h1>${SB()}</header><div class="body"><div class="wrap">
+   <div class="summary">${REM_STATUS.map(st=>`<span><i class="dot" style="background:${REM_COL[st]}"></i>${cnt(st)} ${st.toLowerCase()}</span>`).join('')}${owed?`<span>£${owed.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2})} quoted, not yet done</span>`:''}</div>
+   <div class="grid2" style="margin-top:10px"><select onchange="S.remF=this.value;openRemedials()" aria-label="Show">${opts([['open','Still to do'],...REM_STATUS.map(x=>[x,x]),['all','All']],S.remF,null)}</select>
+   <input type="search" placeholder="Search" value="${esc(S.remQ)}" oninput="S.remQ=this.value;clearTimeout(S.rqT);S.rqT=setTimeout(openRemedials,350)" aria-label="Search remedials"></div>
+   <p class="hint" style="margin-top:8px">Grouped by venue below. Tick the ones you want and send them together as one job list, or email a single remedial from inside it.</p>
+   <div class="row" style="margin-top:8px"><button class="btn small" onclick="download('remedials-'+today()+'.csv',toCsv(remRows()),'text/csv');toast('CSV downloaded')" ${all.length?'':'disabled'}>Download CSV</button><button class="btn small" onclick="copyRows(remRows())" ${all.length?'':'disabled'}>Copy for Excel</button></div>
+   <div style="margin-top:12px">`;
+  h+=venues.map(v=>{
+    const items=groups[v],ids=items.map(x=>x.r.id),selN=ids.filter(id=>S.remSel.has(id)).length;
+    return `<div class="venue"><h3>${esc(v)}</h3><div class="sub">${plural(items.length,'remedial')} shown</div>
+     <div class="vbar"><span class="sel">${selN?selN+' selected':'None selected'}</span><button class="lnk2" onclick="venueSelectAll(${esc(JSON.stringify(ids))})">Select all</button><button class="lnk2" onclick="venueSelectNone(${esc(JSON.stringify(ids))})">Clear</button></div>
+     ${selN?`<div class="mailrow"><input type="text" inputmode="email" id="vboss-${esc(v).replace(/[^A-Za-z0-9]+/g,'_')}" placeholder="boss@company.com" value="${esc((data.site||{}).bossEmail||'')}"><button class="btn small primary" onclick="sendJobList(${esc(JSON.stringify(v))})">Send job list (${selN})</button></div>`:''}
+     ${remRender(items)}</div>`}).join('')||`<p class="hint">${all.length?'Nothing matches this filter.':'No remedials yet. Add them on a board\'s Checks tab and they appear here automatically.'}</p>`;
+  h+=`</div></div></div></div>`;
+  document.getElementById('ovl').innerHTML=h;updateSaveBtn();const nb=document.querySelector('#ovl .body');if(nb)nb.scrollTop=top;
+}
+function remRender(items){
+  return items.map(({m,p,r})=>{const d=BY_ASSET[p.asset],st=r.status||'Open',k=`'${m.id}','${p.id}','${r.id}'`,reg=r.reg==='Other'?r.regOther:r.reg,rd=REGS.find(g=>g[0]===r.reg);
+    const cc=r.code==='C3'?'var(--amber)':r.code?'var(--red)':'var(--grey)';
+    return `<div class="remc" style="border-left-color:${REM_COL[st]}"><div class="top"><label><input type="checkbox" ${S.remSel.has(r.id)?'checked':''} onchange="toggleRemSel('${r.id}',this.checked)" aria-label="Select for job list"></label><span class="code" style="background:${cc}">${esc(r.code||'–')}</span><select aria-label="Status" onchange="setRX(${k},'status',this.value,true)">${opts(REM_STATUS,st,null)}</select></div>
+     <button class="lnk" onclick="S.view2='';openMap('${m.id}','${p.id}','checks')">${esc(d?d.ref:'Pin '+p.num)} – ${esc(d?d.building+', '+d.room:m.name)}</button><br>
+     ${reg?`<b>${esc(reg)}</b>${rd?' '+esc(rd[1]):''}<br>`:''}${r.obs?esc(r.obs)+'<br>':''}${r.action?'Action: '+esc(r.action)+'<br>':''}<span class="muted">${r.raised?'Raised '+fmt(r.raised):''}${r.quote?(r.raised?', ':'')+'quote £'+esc(r.quote):''}${r.completedDate?', completed '+fmt(r.completedDate):''}</span>
+     <details${S.openRem===r.id?' open':''} ontoggle="if(this.open)S.openRem='${r.id}'"><summary>Quote, test and completion</summary>
+      <div class="grid2"><div><label class="f">Quote (£)</label><input type="number" inputmode="decimal" step="0.01" value="${esc(r.quote||'')}" oninput="setRX(${k},'quote',this.value)"></div><div><label class="f">Quote ref</label><input type="text" value="${esc(r.quoteRef||'')}" oninput="setRX(${k},'quoteRef',this.value)"></div></div>
+      <div class="grid2"><div><label class="f">Quote date</label><input type="date" value="${esc(r.quoteDate||'')}" onchange="setRX(${k},'quoteDate',this.value)"></div><div><label class="f">Test result</label><select onchange="setRX(${k},'testResult',this.value)">${opts(['Pass','Fail'],r.testResult)}</select></div></div>
+      <div class="grid2"><div><label class="f">Test date</label><input type="date" value="${esc(r.testDate||'')}" onchange="setRX(${k},'testDate',this.value)"></div><div><label class="f">Completed date</label><input type="date" value="${esc(r.completedDate||'')}" onchange="setRX(${k},'completedDate',this.value)"></div></div>
+      <label class="f">Completed by</label><select onchange="setRX(${k},'completedBy',this.value)">${engOpts(r.completedBy,'–')}</select>
+      <label class="f">Job notes</label><textarea oninput="setRX(${k},'jobNotes',this.value)">${esc(r.jobNotes||'')}</textarea>
+      <div class="pg">Before</div><div class="photos" style="padding-top:2px">${(r.beforePhotos||[]).map(g=>`<button class="ph" onclick="viewFile('${g.id}')" aria-label="View before photo"><img src="${g.thumb}" alt=""></button>`).join('')}<label>+ Add<input type="file" accept="image/*" multiple hidden onchange="addRemFile(${k},'beforePhotos',this)"></label></div>
+      <div class="pg">After</div><div class="photos" style="padding-top:2px">${(r.afterPhotos||[]).map(g=>`<button class="ph" onclick="viewFile('${g.id}')" aria-label="View after photo"><img src="${g.thumb}" alt=""></button>`).join('')}<label>+ Add<input type="file" accept="image/*" multiple hidden onchange="addRemFile(${k},'afterPhotos',this)"></label></div>
+      <label class="f">Invoices and quotes</label><div class="photos" style="padding-top:2px">${(r.invoices||[]).map(g=>`<button class="ph" onclick="viewFile('${g.id}')" aria-label="View ${esc(g.name)}">${g.type==='img'?`<img src="${g.thumb}" alt="">`:'<span style="font-weight:700;color:var(--red)">PDF</span>'}</button>`).join('')}<label>+ Add invoice or quote<input type="file" accept="image/*,application/pdf" multiple hidden onchange="addRemFile(${k},'invoices',this)"></label></div>
+      <label class="f">Email this remedial</label><div class="mailrow"><input type="text" inputmode="email" id="boss-${r.id}" placeholder="boss@company.com" value="${esc(r.emailTo||(data.site||{}).bossEmail||'')}"><button class="btn small primary" onclick="emailRemedial(${k})">Send</button></div>
+      <p class="hint" style="margin:4px 0 0">Sends this job's details${(r.beforePhotos||[]).length||(r.afterPhotos||[]).length?' with the before and after photos':''}${CLOUD?'':'. Connect to the team backend to include photos'}.</p></details></div>`}).join('');
+}
+function setRX(mid,pid,rid,k,v,rerender){const p=pinsOf(mid).find(x=>x.id===pid),r=p.remedials.find(x=>x.id===rid);r[k]=v;
+  if(k==='status'){if(v==='Quoted'&&!r.quoteDate)r.quoteDate=today();if(v==='Completed'&&!r.completedDate)r.completedDate=today();S.openRem=rid}
+  scheduleSave();if(rerender){openRemedials();toast('Marked '+v.toLowerCase())}}
+async function emailRemedial(mid,pid,rid){
+  const p=pinsOf(mid).find(x=>x.id===pid),r=p.remedials.find(x=>x.id===rid),m=allMaps().find(x=>x.id===mid),d=BY_ASSET[p.asset]||{};
+  const inp=document.getElementById('boss-'+rid),to=(inp?inp.value:'').trim();
+  if(!to||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)){toast('Add a valid email address first');inp&&inp.focus();return}
+  r.emailTo=to;data.site.bossEmail=to;scheduleSave();
+  const btn=event&&event.target;if(btn){btn.disabled=true;btn.textContent='Sending…'}
+  try{
+    const subject=`${d.ref||'Pin '+p.num} – ${r.code||'Remedial'} – ${siteName()}`;
+    if(CLOUD){
+      const images={};let n=0;
+      for(const kind of ['beforePhotos','afterPhotos'])for(const g of r[kind]||[]){if(g.type!=='img')continue;const data=await getFileData(g.id);if(data)images[kind==='beforePhotos'?'before'+(n++):'after'+(n++)]=data}
+      const html=remedialEmailHtml(m,p,r,d,images);
+      const j=await api('emailRemedial',{to,subject,html,images});toast('Emailed to '+to);
+    }else{
+      const lines=[subject,'',`Board: ${d.ref||''} – ${d.building||m.name}, ${d.room||''}`,r.reg?('Regulation: '+(r.reg==='Other'?r.regOther:r.reg)):'',r.obs?('Observation: '+r.obs):'',r.action?('Action: '+r.action):'',`Status: ${r.status||'Open'}`,r.quote?('Quote: £'+r.quote):'','','Before and after photos are in the DB Map app for this board.'].filter(Boolean);
+      location.href=`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join('\n'))}`;
+      toast('Opening your email app. Connect to the team backend to send photos automatically.');
+    }
+  }catch(e){toast('Could not send: '+e.message)}
+  if(btn){btn.disabled=false;btn.textContent='Send'}
+}
+function remedialEmailHtml(m,p,r,d,images){
+  const F='Arial,Helvetica,sans-serif',G='#003F2D',rg=r.reg==='Other'?r.regOther:r.reg,rd=REGS.find(x=>x[0]===r.reg);
+  const row=(l,v)=>v?`<tr><td style="font:600 12px ${F};color:#5A6862;padding:5px 10px 5px 0;white-space:nowrap;vertical-align:top">${l}</td><td style="font:14px ${F};color:#15201C;padding:5px 0">${esc(v)}</td></tr>`:'';
+  const gallery=prefix=>Object.keys(images).filter(k=>k.startsWith(prefix)).map(k=>`<img src="cid:${k}" alt="" style="width:150px;height:112px;object-fit:cover;border-radius:6px;margin:0 8px 8px 0;border:1px solid #D5DCD8">`).join('');
+  const before=gallery('before'),after=gallery('after');
+  return `<div style="max-width:560px;margin:0 auto;background:#fff;color:#15201C">
+   <div style="background:${G};color:#fff;padding:14px 16px;border-radius:8px 8px 0 0"><div style="font:600 12px ${F};color:#BFE3D2">${esc(siteName())}</div><div style="font:700 19px ${F}">${esc(d.ref||'Pin '+p.num)}${r.code?' – '+esc(r.code):''}</div><div style="font:13px ${F};color:#E0EEE7;margin-top:2px">${esc(d.building||m.name)}${d.room?', '+esc(d.room):''}</div></div>
+   <div style="padding:14px 16px;border:1px solid #D5DCD8;border-top:0;border-radius:0 0 8px 8px">
+   <table style="border-collapse:collapse">${row('Regulation',rg?rg+(rd?' – '+rd[1]:''):'')}${row('Observation',r.obs)}${row('Action',r.action)}${row('Status',r.status||'Open')}${row('Raised',fmt(r.raised))}${row('Quote',r.quote?'£'+r.quote+(r.quoteRef?' ('+r.quoteRef+')':''):'')}${row('Test result',r.testResult?r.testResult+(r.testDate?', '+fmt(r.testDate):''):'')}${row('Completed',r.completedDate?fmt(r.completedDate)+(r.completedBy?' by '+r.completedBy:''):'')}${row('Notes',r.jobNotes)}</table>
+   ${before?`<div style="font:700 13px ${F};color:${G};margin:14px 0 4px">Before</div><div>${before}</div>`:''}
+   ${after?`<div style="font:700 13px ${F};color:${G};margin:14px 0 4px">After</div><div>${after}</div>`:''}
+   </div></div>`;
+}
+async function sendJobList(venue){
+  const inp=document.getElementById('vboss-'+venue.replace(/[^A-Za-z0-9]+/g,'_')),to=(inp?inp.value:'').trim();
+  if(!to||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)){toast('Add a valid email address first');inp&&inp.focus();return}
+  const all=allRems(),items=all.filter(x=>S.remSel.has(x.r.id)&&remBuilding(x)===venue);
+  if(!items.length){toast('Nothing selected for '+venue);return}
+  data.site.bossEmail=to;scheduleSave();
+  const btn=event&&event.target;if(btn){btn.disabled=true;btn.textContent='Sending…'}
+  try{
+    const subject=`${items.length} remedials – ${venue} – ${siteName()}`;
+    if(CLOUD){
+      const images={};
+      for(let i=0;i<items.length;i++){const r=items[i].r;
+        (r.beforePhotos||[]).forEach((g,j)=>{if(g.thumb)images['it'+i+'_b'+j]=g.thumb});
+        (r.afterPhotos||[]).forEach((g,j)=>{if(g.thumb)images['it'+i+'_a'+j]=g.thumb});}
+      const html=jobListHtml(venue,items);
+      await api('emailRemedial',{to,subject,html,images});
+    }else{
+      const lines=[subject,'',...items.map(({m,p,r})=>{const d=BY_ASSET[p.asset]||{};return `${d.ref||'Pin '+p.num} (${d.room||''}) – ${r.code||'No code'} – ${r.status||'Open'}${r.obs?': '+r.obs:''}`}),'','Photos are in the DB Map app for each board.'];
+      location.href=`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join('\n'))}`;
+      if(btn){btn.disabled=false;btn.textContent='Send job list ('+items.length+')'}
+      toast('Opening your email app. Connect to the team backend to send photos automatically.');return;
+    }
+    items.forEach(x=>S.remSel.delete(x.r.id));toast('Job list emailed to '+to);openRemedials();
+  }catch(e){toast('Could not send: '+e.message);if(btn){btn.disabled=false;btn.textContent='Send job list ('+items.length+')'}}
+}
+function jobListHtml(venue,items){
+  const F='Arial,Helvetica,sans-serif',G='#003F2D';
+  const row=(l,v)=>v?`<tr><td style="font:600 12px ${F};color:#5A6862;padding:3px 8px 3px 0;white-space:nowrap;vertical-align:top">${l}</td><td style="font:13px ${F};color:#15201C;padding:3px 0">${esc(v)}</td></tr>`:'';
+  const cards=items.map(({m,p,r},i)=>{const d=BY_ASSET[p.asset]||{},rg=r.reg==='Other'?r.regOther:r.reg,rd=REGS.find(x=>x[0]===r.reg),cc=r.code==='C3'?'#D98200':r.code?'#C8261E':'#7C8A84';
+    const gal=(prefix,n)=>Array.from({length:n},(_,j)=>`<img src="cid:it${i}_${prefix}${j}" alt="" style="width:110px;height:82px;object-fit:cover;border-radius:5px;margin:0 6px 6px 0;border:1px solid #D5DCD8">`).join('');
+    const before=gal('b',(r.beforePhotos||[]).length),after=gal('a',(r.afterPhotos||[]).length);
+    return `<div style="border:1px solid #D5DCD8;border-radius:8px;padding:10px 12px;margin-bottom:10px">
+     <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="background:${cc};color:#fff;font:700 12px ${F};padding:2px 7px;border-radius:3px">${esc(r.code||'–')}</span><b style="font:15px ${F}">${esc(d.ref||'Pin '+p.num)}</b><span style="font:12px ${F};color:#5A6862">${esc(d.room||'')}</span></div>
+     <table style="border-collapse:collapse">${row('Regulation',rg?rg+(rd?' – '+rd[1]:''):'')}${row('Observation',r.obs)}${row('Action',r.action)}${row('Status',r.status||'Open')}${row('Quote',r.quote?'£'+r.quote:'')}</table>
+     ${before?`<div style="font:600 12px ${F};color:${G};margin:8px 0 2px">Before</div><div>${before}</div>`:''}${after?`<div style="font:600 12px ${F};color:${G};margin:8px 0 2px">After</div><div>${after}</div>`:''}</div>`}).join('');
+  return `<div style="max-width:600px;margin:0 auto;background:#fff;color:#15201C">
+   <div style="background:${G};color:#fff;padding:14px 16px;border-radius:8px 8px 0 0"><div style="font:600 12px ${F};color:#BFE3D2">${esc(siteName())}</div><div style="font:700 19px ${F}">${plural(items.length,'remedial')} – ${esc(venue)}</div></div>
+   <div style="padding:14px 16px;border:1px solid #D5DCD8;border-top:0;border-radius:0 0 8px 8px">${cards}</div></div>`;
+}
+function remRows(){const rows=[['Map','Pin','DB ref','Asset Code','Building','Room','Code','Regulation','Observation','Action','Status','Raised','Quote (£)','Quote ref','Quote date','Test result','Test date','Completed date','Completed by','Job notes','Before photos','After photos','Emailed to']];
+  for(const {m,p,r} of allRems()){const d=BY_ASSET[p.asset]||{};rows.push([m.name,p.num,d.ref||'',d.custom?'':(p.asset||''),d.building||'',d.room||'',r.code,r.reg==='Other'?r.regOther:r.reg,r.obs,r.action,r.status||'Open',r.raised||'',r.quote||'',r.quoteRef||'',r.quoteDate||'',r.testResult||'',r.testDate||'',r.completedDate||'',r.completedBy||'',r.jobNotes||'',(r.beforePhotos||[]).length,(r.afterPhotos||[]).length,r.emailTo||''])}return rows}
+
+/* ============ engineers ============ */
+const validEmail=e=>!e||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+const telHref=p=>'tel:'+p.replace(/[^\d+]/g,'');
+function weekList(name){const wk=currentWeek(),w=WEEKS[wk],list=DBS.filter(d=>d.wk===wk&&d.engineer===name);return{wk,w,list}}
+function openTeam(){
+  const ov=document.getElementById('ovl'),es=data.engineers;
+  let h=`<div class="ov"><header><button class="hbtn" onclick="closeOv();renderHome()">‹ Back</button><h1>Engineers</h1></header><div class="body"><div class="wrap">`;
+  h+=es.map(e=>{const n=DBS.filter(d=>d.engineer===e.name).length,wl=weekList(e.name);
+    if(S.editEng===e.id)return engForm(e);
+    const body=encodeURIComponent(`Week ${wl.wk} DB checks (${wl.w?wl.w[0]+' to '+wl.w[1]:''}):\n`+wl.list.map(d=>`${d.ref} – ${d.building}, ${d.room}`).join('\n'));
+    return `<div class="eng"><b>${esc(e.name)}</b><div class="meta">${e.phone?esc(e.phone):'No phone number'}<br>${e.email?esc(e.email):'No email'}<br>${plural(n,'board')} assigned, ${wl.list.length} this week</div>
+     <div class="actions">${e.phone?`<a class="btn small" href="${esc(telHref(e.phone))}">Call</a><a class="btn small" href="sms:${esc(e.phone.replace(/[^\d+]/g,''))}?body=${body}">Text this week's list</a>`:''}${e.email?`<a class="btn small" href="mailto:${esc(e.email)}?subject=${encodeURIComponent('DB checks week '+wl.wk)}&body=${body}">Email this week's list</a>`:''}
+     <button class="btn small" onclick="S.editEng='${e.id}';openTeam()">Edit</button><button class="btn small danger" onclick="S.editEng='rm:${e.id}';openTeam()">Remove</button></div>
+     ${S.editEng==='rm:'+e.id?removeForm(e,n):''}</div>`}).join('')||'<p class="hint">No engineers yet.</p>';
+  h+=S.editEng==='new'?engForm({id:'new',name:'',email:'',phone:''}):`<button class="btn primary wide" style="margin-top:6px" onclick="S.editEng='new';openTeam()">+ Add engineer</button>`;
+  h+=`<p class="hint">Engineers here fill the sign-off, assignment, filter and reminder dropdowns. Emails are added to Google Calendar invites from Reminders.</p></div></div></div>`;
+  ov.innerHTML=h;const f=document.getElementById('e-name');if(f&&S.editEng==='new')f.focus();
+}
+function engForm(e){return `<div class="eng edit"><h3>${e.id==='new'?'New engineer':'Edit engineer'}</h3>
+  <label class="f" for="e-name">Name</label><input type="text" id="e-name" value="${esc(e.name)}" autocomplete="name">
+  <label class="f" for="e-phone">Phone</label><input type="text" id="e-phone" inputmode="tel" value="${esc(e.phone)}" placeholder="e.g. 07700 900123" autocomplete="tel">
+  <label class="f" for="e-email">Email</label><input type="text" id="e-email" inputmode="email" value="${esc(e.email)}" placeholder="name@company.com" autocomplete="email">
+  <div class="row" style="margin-top:12px"><button class="btn primary" onclick="saveEng('${e.id}')">${e.id==='new'?'Add engineer':'Save'}</button><button class="btn" onclick="S.editEng=null;openTeam()">Cancel</button></div></div>`}
+function removeForm(e,n){const others=engNames().filter(x=>x!==e.name);return `<div class="edit" style="margin-top:10px"><p style="margin:8px 0 0;font-size:15px">${n?`Move ${esc(e.name)}'s ${plural(n,'board')} to:`:`Remove ${esc(e.name)}?`}</p>
+  ${n?`<select id="e-move" style="margin-top:8px">${opts(others,others[0]||'','Leave unassigned')}</select>`:''}
+  <div class="row" style="margin-top:10px"><button class="btn danger" onclick="removeEng('${e.id}')">Remove engineer</button><button class="btn" onclick="S.editEng=null;openTeam()">Cancel</button></div>
+  <p class="hint">Past sign-offs keep their name.</p></div>`}
+function reassign(from,to){DBS.filter(d=>d.engineer===from).forEach(d=>{data.engOverride[d.asset]=to})}
+function saveEng(id){
+  const name=document.getElementById('e-name').value.trim(),phone=document.getElementById('e-phone').value.trim(),email=document.getElementById('e-email').value.trim();
+  if(!name){toast('Add a name');return}
+  if(!validEmail(email)){toast('That email doesn\'t look right');return}
+  if(data.engineers.some(x=>x.name.toLowerCase()===name.toLowerCase()&&x.id!==id)){toast(name+' is already on the list');return}
+  if(id==='new')data.engineers.push({id:engId(name),name,phone,email,o:Math.max(-1,...data.engineers.map(e=>e.o??0))+1});
+  else{const e=data.engineers.find(x=>x.id===id);if(e.name!==name){reassign(e.name,name);if(S.eng===e.name)S.eng=name}Object.assign(e,{name,phone,email})}
+  rebuildDbs();S.editEng=null;scheduleSave();openTeam();toast(id==='new'?name+' added':'Saved');
+}
+function removeEng(id){
+  const e=data.engineers.find(x=>x.id===id),mv=document.getElementById('e-move');
+  reassign(e.name,mv?mv.value:'');data.engineers=data.engineers.filter(x=>x.id!==id);
+  if(S.eng===e.name)S.eng='';rebuildDbs();S.editEng=null;scheduleSave();openTeam();toast(e.name+' removed');
+}
+
+/* ============ list overlay ============ */
+function openList(){
+  const m=curMap(),ps=[...pinsOf(m.id)].sort((a,b)=>(+a.num||0)-(+b.num||0)),bld=buildingOf(m),bk=bKey(m),pl=placed();
+  const unplaced=DBS.filter(d=>d.building===bk&&!pl[d.asset]);
+  const custom=m.id.startsWith('c');
+  document.getElementById('ovl').innerHTML=`<div class="ov"><header><button class="hbtn" onclick="closeOv()">‹ Map</button><h1>${esc(m.name)}</h1></header><div class="body"><div class="wrap">
+   <h2>${plural(ps.length,'pin')} on this map</h2>
+   ${ps.map(p=>{const st=pinStatus(p),d=BY_ASSET[p.asset];return `<button class="lrow" onclick="closeOv();openPin('${p.id}','board');centerOn('${p.id}')"><span class="bign" style="background:${st.c}">${esc(p.num)}</span><span><b>${d?esc(d.ref):'No board linked'}</b>${d?', '+esc(d.room):''}<small>${esc(st.l)}${(p.cables||[]).length?', '+plural(p.cables.length,'cable'):''}</small></span></button>`}).join('')||'<p class="hint">No pins yet. Go back and tap Add DB.</p>'}
+   <h2>Not placed yet</h2><p class="hint" style="margin-top:0">${unplaced.length?plural(unplaced.length,'board')+' in '+esc(bk)+' still need a pin. Tap one to place it.':'Every listed board in '+esc(bk)+' has a pin.'}</p>
+   ${unplaced.map(d=>`<button class="lrow" onclick="placeAsset('${esc(d.asset)}')"><span><b>${esc(d.ref)}</b>, ${esc(d.room)}<small>${d.custom?'Added by you':esc(d.asset)}${d.engineer?', '+esc(d.engineer):''}</small></span><em style="font-style:normal;font-weight:700;color:var(--green)">Place</em></button>`).join('')}
+   <h2>Map settings</h2>
+   ${custom?`<label class="f" for="m-name">Map name</label><input type="text" id="m-name" value="${esc(m.name)}" oninput="curMap().name=this.value||'Untitled map';scheduleSave()">`:''}
+   <label class="f" for="m-bld">Building in the DB schedule</label><select id="m-bld" onchange="setBuilding(this.value)">${opt('',custom?'None (new building)':'None',bld)}${[...BLD].sort().map(b=>opt(b,b,bld)).join('')}</select>
+   <p class="hint">This sets which boards appear in the pin dropdown. For a building that isn't in the schedule, choose None and add boards with "Board not in the schedule".</p>
+   <div class="row" style="margin-top:14px"><button class="btn" onclick="closeOv();renderMap()">Done</button>${ps.some(p=>p.asset)?`<button class="btn" onclick="printLabels(pinsOf(S.mapId).filter(p=>p.asset).map(p=>p.asset))">Print QR labels</button>`:''}<label class="btn">Upload another map<input type="file" accept="image/*" hidden onchange="closeOv();pickMap(this)"></label>${custom?`<button class="btn danger" onclick="armed(this,deleteMap,'Tap again to delete map')">Delete map</button>`:''}${ps.length?`<button class="btn danger" onclick="armed(this,clearPins,'Tap again to clear all pins')">Clear all pins</button>`:''}</div>
+  </div></div></div>`;
+}
+function placeAsset(a){closeOv();S.pendingAsset=a;S.place=true;S.pinId=null;S.cableId=null;renderSheet();updateBanner();drawPins()}
+function setBuilding(v){data.mapBuilding[S.mapId]=v;scheduleSave();openList()}
+async function clearPins(){for(const p of pinsOf(S.mapId))for(const g of [...(p.diagrams||[]),...(p.photos||[])])await sdel(KFILE+g.id);meta(S.mapId).pins=[];await saveData();toast('Pins cleared');closeOv();renderMap()}
+async function deleteMap(){const m=curMap();for(const p of pinsOf(m.id))for(const g of [...(p.diagrams||[]),...(p.photos||[])])await sdel(KFILE+g.id);await sdel(KIMG+m.id);delete imgCache[m.id];delete data.maps[m.id];data.custom=data.custom.filter(x=>x.id!==m.id);await saveData();toast('Map deleted');closeOv();renderHome()}
+
+/* ---- shared sync logic: identical code runs in the app and in Apps Script ----
+   Every record (pin, symbol, custom map, added board, engineer, key/value setting)
+   carries a timestamp "u". When two copies meet, the newest version of each record
+   wins, and deletions are remembered as tombstones so they don't come back. */
+var KV_SECTIONS=['engOverride','weekOverride','parents','dbEdits','mapBuilding','site'];
+function dmFlatten(d){
+  var R={},mid,k;d=d||{};var maps=d.maps||{};
+  for(mid in maps){var m=maps[mid]||{};
+    (m.pins||[]).forEach(function(p){R['p:'+mid+':'+p.id]=p});
+    (m.symbols||[]).forEach(function(s){R['s:'+mid+':'+s.id]=s})}
+  (d.custom||[]).forEach(function(c){R['cm:'+c.id]=c});
+  (d.customDbs||[]).forEach(function(c){R['cd:'+c.asset]=c});
+  (d.engineers||[]).forEach(function(e){R['e:'+e.id]=e});
+  var kvu=d.kvu||{};
+  KV_SECTIONS.forEach(function(sec){var o=d[sec]||{};for(k in o)R['kv:'+sec+':'+k]={v:o[k],u:kvu[sec+':'+k]||0}});
+  return R;
+}
+function dmUnflatten(R,T){
+  var d={maps:{},custom:[],customDbs:[],engineers:[],kvu:{},tomb:T||{}};
+  KV_SECTIONS.forEach(function(s){d[s]={}});
+  Object.keys(R).forEach(function(key){
+    var r=R[key],i=key.indexOf(':'),type=key.slice(0,i),rest=key.slice(i+1);
+    if(type==='p'||type==='s'){var j=rest.indexOf(':'),mid=rest.slice(0,j);
+      var m=d.maps[mid]||(d.maps[mid]={pins:[],symbols:[]});(type==='p'?m.pins:m.symbols).push(r)}
+    else if(type==='cm')d.custom.push(r);
+    else if(type==='cd')d.customDbs.push(r);
+    else if(type==='e')d.engineers.push(r);
+    else if(type==='kv'){var j2=rest.indexOf(':'),sec=rest.slice(0,j2),k=rest.slice(j2+1);
+      if(KV_SECTIONS.indexOf(sec)>=0){d[sec][k]=r.v;d.kvu[sec+':'+k]=r.u||0}}
+  });
+  d.custom.sort(function(a,b){return a.id<b.id?-1:a.id>b.id?1:0});
+  d.engineers.sort(function(a,b){return ((a.o==null?1e9:a.o)-(b.o==null?1e9:b.o))||(a.id<b.id?-1:1)});
+  return d;
+}
+function dmMerge(a,b){
+  var A=dmFlatten(a),B=dmFlatten(b),T={},k;
+  [a&&a.tomb,b&&b.tomb].forEach(function(t){for(k in (t||{}))T[k]=Math.max(T[k]||0,t[k])});
+  var out={},keys={};for(k in A)keys[k]=1;for(k in B)keys[k]=1;
+  for(k in keys){var x=A[k],y=B[k],r=!x?y:!y?x:((y.u||0)>=(x.u||0)?y:x);
+    if(T[k]&&T[k]>=(r.u||0))continue;out[k]=r}
+  var cut=Date.now()-180*864e5;for(k in T)if(T[k]<cut)delete T[k];
+  return dmUnflatten(out,T);
+}
+
+/* ============ symbols: lights, sockets, isolators, fire ============ */
+const SYMS=[
+ {k:'light',l:'Light',c:'#1565C0'},
+ {k:'emerg',l:'Emergency light',c:'#E07B00'},
+ {k:'socket',l:'Socket',c:'#C8261E'},
+ {k:'isolator',l:'Isolator',c:'#37474F'},
+ {k:'callpoint',l:'Fire call point',c:'#C8261E'},
+ {k:'sounder',l:'Fire alarm sounder',c:'#C8261E'},
+ {k:'detector',l:'Smoke / heat detector',c:'#C8261E'},
+];
+const SYM=Object.fromEntries(SYMS.map(s=>[s.k,s]));
+function symSvg(k,sz=24){const c=(SYM[k]||SYMS[0]).c;const inner={
+ light:`<circle cx="12" cy="12" r="8" fill="#fff" stroke="${c}" stroke-width="2.2"/><path d="M6.4 6.4l11.2 11.2M17.6 6.4L6.4 17.6" stroke="${c}" stroke-width="2.2"/>`,
+ emerg:`<circle cx="12" cy="12" r="8.5" fill="#FFE0B2" stroke="${c}" stroke-width="2.6"/><path d="M6.2 6.2l11.6 11.6M17.8 6.2L6.2 17.8" stroke="${c}" stroke-width="2.2"/><circle cx="12" cy="12" r="2.6" fill="${c}"/>`,
+ socket:`<path d="M4 15a8 8 0 0 1 16 0z" fill="#fff" stroke="${c}" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 15v6M8 21h8" stroke="${c}" stroke-width="2.2"/>`,
+ isolator:`<rect x="3.5" y="3.5" width="17" height="17" rx="2" fill="#fff" stroke="${c}" stroke-width="2.2"/><circle cx="8" cy="16" r="1.8" fill="${c}"/><path d="M8 16L17 7.5" stroke="${c}" stroke-width="2.2"/>`,
+ callpoint:`<rect x="3" y="3" width="18" height="18" rx="2" fill="${c}"/><circle cx="12" cy="12" r="5" fill="#fff"/><circle cx="12" cy="12" r="2.2" fill="${c}"/>`,
+ sounder:`<rect x="3" y="3" width="18" height="18" rx="9" fill="#fff" stroke="${c}" stroke-width="2"/><path d="M7 10h3l4-3v10l-4-3H7z" fill="${c}"/><path d="M16 9.5a3.5 3.5 0 0 1 0 5" stroke="${c}" stroke-width="1.8" fill="none"/>`,
+ detector:`<circle cx="12" cy="12" r="8.5" fill="#fff" stroke="${c}" stroke-width="2.2"/><text x="12" y="16.2" text-anchor="middle" font-size="11" font-weight="700" fill="${c}" font-family="Arial,sans-serif">S</text>`}[k]||'';
+ return `<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" aria-hidden="true">${inner}</svg>`}
+const symsOf=mid=>{const m=meta(mid);return m.symbols||(m.symbols=[])};
+const defKind=t=>({lighting:'light',emergency:'emerg',power:'socket'})[t]||'light';
+function nearestOnPolyline(pts,x,y){let best=null;for(let i=0;i<pts.length-1;i++){const[ax,ay]=pts[i],[bx,by]=pts[i+1],dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy;let t=L?((x-ax)*dx+(y-ay)*dy)/L:0;t=Math.max(0,Math.min(1,t));const px=ax+t*dx,py=ay+t*dy,d=Math.hypot(x-px,y-py);if(!best||d<best.d)best={x:px,y:py,d}}return best}
+function allCables(){const out=[];for(const p of pinsOf(S.mapId))for(const cb of p.cables||[]){const pts=cablePts(p,cb);if(pts.length>1)out.push({p,cb,pts})}return out}
+function findCable(pinId,cabId){const p=pinsOf(S.mapId).find(x=>x.id===pinId),cb=p&&(p.cables||[]).find(c=>c.id===cabId);return cb?{p,cb,pts:cablePts(p,cb)}:null}
+function screenToImg(px){const cv=document.getElementById('cv');return px*curMap().w/cv.getBoundingClientRect().width}
+function cableName(pid,cid){const c=findCable(pid,cid);if(!c)return '';const d=BY_ASSET[c.p.asset],ci=(c.p.circuits||[]).find(x=>x.id===c.cb.circuit);return `${d?d.ref:'Pin '+c.p.num} – ${ci?circuitLabel(ci):(c.cb.powers||(CT[c.cb.type]||CT.other).l)}`}
+function symCounts(cabId){const c={};symsOf(S.mapId).filter(s=>s.cab===cabId).forEach(s=>c[s.k]=(c[s.k]||0)+1);return Object.entries(c).map(([k,n])=>plural(n,SYM[k].l.toLowerCase())).join(', ')}
+function startSyms(k,cable){Object.assign(S,{place:false,draw:null,adjust:null,sym:k||S.lastSym||'light',symCable:cable||null,symSteps:[],pinId:null,cableId:null,symSel:null});renderSheet();drawPalette();updateBanner();drawAll()}
+function endSyms(){const back=S.symCable;S.sym=null;S.symCable=null;drawPalette();updateBanner();drawAll();if(back){S.pinId=back.pin;S.cableId=back.cab;renderSheet()}}
+function pickSym(k){S.sym=k;if(k!=='erase')S.lastSym=k;drawPalette();updateBanner()}
+function symUndo(){const id=S.symSteps.pop();if(id)removeSym(id);updateBanner()}
+function drawPalette(){const el=document.getElementById('palette');document.getElementById('drawBtn')?.classList.toggle('on',!!S.sym);if(!el)return;if(!S.sym){el.innerHTML='';return}
+  el.innerHTML=`<div class="pal" role="toolbar" aria-label="Symbols">${SYMS.map(s=>`<button class="${S.sym===s.k?'on':''}" onclick="pickSym('${s.k}')" aria-pressed="${S.sym===s.k}">${symSvg(s.k,26)}<span>${esc(s.l)}</span></button>`).join('')}<button class="${S.sym==='erase'?'on':''}" onclick="pickSym('erase')" aria-pressed="${S.sym==='erase'}"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M5 20h14M7 15l7-9 5 4-7 9H9z" fill="none" stroke="#333" stroke-width="2"/></svg><span>Erase</span></button></div>`;
+  document.getElementById('drawBtn')?.classList.toggle('on',!!S.sym);
+}
+function placeSym(pt){
+  let x=pt.x,y=pt.y,link=null;
+  if(S.symCable){const c=findCable(S.symCable.pin,S.symCable.cab);if(c){const n=nearestOnPolyline(c.pts,x,y);x=n.x;y=n.y;link=S.symCable}}
+  else{const thr=screenToImg(22);let best=null;for(const c of allCables()){const n=nearestOnPolyline(c.pts,x,y);if(n.d<thr&&(!best||n.d<best.n.d))best={c,n}}
+    if(best){x=best.n.x;y=best.n.y;link={pin:best.c.p.id,cab:best.c.cb.id}}}
+  const s={id:uid(),k:S.sym,x,y,label:'',notes:''};if(link){s.pin=link.pin;s.cab=link.cab}
+  symsOf(S.mapId).push(s);S.symSteps.push(s.id);scheduleSave();drawSyms();updateBanner();
+}
+function drawSyms(){
+  const el=document.getElementById('syms');if(!el)return;const m=curMap(),list=symsOf(S.mapId);
+  for(const s of list){if(s.cab){const c=findCable(s.pin,s.cab);if(!c){delete s.pin;delete s.cab}else{const n=nearestOnPolyline(c.pts,s.x,s.y);if(n.d>0.5){s.x=n.x;s.y=n.y}}}}
+  el.innerHTML=(S.showSyms===false?[]:list).map(s=>`<button class="sym${S.symSel===s.id?' sel':''}" data-id="${s.id}" style="left:${s.x/m.w*100}%;top:${s.y/m.h*100}%" aria-label="${esc((SYM[s.k]||{}).l||'Symbol')}${s.label?' '+esc(s.label):''}">${symSvg(s.k)}</button>`).join('');
+  el.querySelectorAll('.sym').forEach(bindSym);
+}
+function bindSym(btn){
+  let start=null,moved=false;
+  btn.addEventListener('pointerdown',e=>{if(S.place||S.draw||S.adjust)return;e.stopPropagation();start={x:e.clientX,y:e.clientY};moved=false;if(!S.locked&&S.sym!=='erase')btn.setPointerCapture(e.pointerId)});
+  btn.addEventListener('pointermove',e=>{if(!start||S.locked||S.sym==='erase')return;if(!moved&&Math.hypot(e.clientX-start.x,e.clientY-start.y)<6)return;moved=true;
+    const s=symsOf(S.mapId).find(x=>x.id===btn.dataset.id),pt=imgPt(e),m=curMap();let x=pt.x,y=pt.y;
+    if(s.cab){const c=findCable(s.pin,s.cab);if(c){const n=nearestOnPolyline(c.pts,x,y);if(n.d<screenToImg(60)){x=n.x;y=n.y}else{delete s.pin;delete s.cab}}}
+    s.x=x;s.y=y;btn.style.left=x/m.w*100+'%';btn.style.top=y/m.h*100+'%'});
+  btn.addEventListener('pointerup',e=>{if(!start)return;e.stopPropagation();const id=btn.dataset.id;
+    if(moved)scheduleSave();else if(Math.hypot(e.clientX-start.x,e.clientY-start.y)<8){if(S.sym==='erase')removeSym(id);else if(!S.sym)openSym(id)}
+    start=null});
+  btn.addEventListener('pointercancel',()=>{start=null});
+  btn.addEventListener('click',e=>e.stopPropagation());
+}
+function removeSym(id){const m=meta(S.mapId);m.symbols=symsOf(S.mapId).filter(s=>s.id!==id);if(S.symSel===id){S.symSel=null;renderSheet()}scheduleSave();drawSyms()}
+function openSym(id){S.pinId=null;S.cableId=null;S.symSel=id;renderSheet();drawAll()}
+function renderSymSheet(el){
+  const s=symsOf(S.mapId).find(x=>x.id===S.symSel);if(!s){S.symSel=null;el.innerHTML='';return}
+  const k=sheetKeep(el,'s'+s.id),cabs=allCables(),cur=s.cab?s.pin+'|'+s.cab:'';
+  el.innerHTML=`<div class="sheet cable${k.still}" role="dialog" aria-label="${esc(SYM[s.k].l)}"><div class="shead"><div class="bign" style="background:#fff;border:1.5px solid var(--line)">${symSvg(s.k,30)}</div><div class="st"><b>${esc(SYM[s.k].l)}${s.label?' '+esc(s.label):''}</b>${s.cab?esc(cableName(s.pin,s.cab)):'Not on a cable'}</div><button class="close" onclick="closeSheet()">Close</button></div>
+   <div class="sbody"><label class="f" for="sy-k">Type</label><select id="sy-k" onchange="setSym('k',this.value)">${opts(SYMS.map(x=>[x.k,x.l]),s.k,null)}</select>
+   <label class="f" for="sy-l">Label</label><input type="text" id="sy-l" value="${esc(s.label||'')}" placeholder="e.g. EL 14 or Kitchen sockets" oninput="setSym('label',this.value,true)">
+   <label class="f" for="sy-c">On circuit</label><select id="sy-c" onchange="setSym('link',this.value)">${opt('','Not on a cable',cur)}${cabs.map(c=>opt(c.p.id+'|'+c.cb.id,cableName(c.p.id,c.cb.id),cur)).join('')}</select>
+   <label class="f" for="sy-n">Notes</label><textarea id="sy-n" oninput="setSym('notes',this.value,true)">${esc(s.notes||'')}</textarea>
+   <div class="row" style="margin-top:12px"><button class="btn small danger" onclick="armed(this,()=>{removeSym('${s.id}');closeSheet()})">Delete</button></div>
+   <p class="hint">To move it, tap Unlocked and drag. Symbols on a cable slide along it.</p></div></div>`;k.restore();
+}
+function setSym(k,v,quiet){const s=symsOf(S.mapId).find(x=>x.id===S.symSel);if(!s)return;if(k==='link'){if(v){const[p,c]=v.split('|');s.pin=p;s.cab=c}else{delete s.pin;delete s.cab}}else s[k]=v;scheduleSave();drawSyms();if(!quiet)renderSheet()}
+function quickClose(){const open=S.pinId||S.cableId||S.symSel;S.pinId=null;S.cableId=null;S.symSel=null;renderSheet();drawAll();clearTimeout(saveT);saveData().then(ok=>toast(ok?(open?'Closed and saved':'Saved'):'Not saved'))}
+function symRows(){const rows=[['Map','Symbol','Label','DB ref','Circuit','Notes']];const keep=S.mapId;
+  for(const m of allMaps()){S.mapId=m.id;for(const s of (meta(m.id).symbols||[])){const c=s.cab&&findCable(s.pin,s.cab);rows.push([m.name,(SYM[s.k]||{}).l||s.k,s.label||'',c?(BY_ASSET[c.p.asset]||{}).ref||'Pin '+c.p.num:'',c?cableName(s.pin,s.cab).split(' – ').slice(1).join(' – '):'',s.notes||''])}}
+  S.mapId=keep;return rows}
+
+/* ============ board details editing ============ */
+function showEditDb(){const d=BY_ASSET[curPin().asset];const el=document.getElementById('dbcard');if(!el||!d)return;
+  el.innerHTML=`<h3 style="margin-top:4px">Edit board details</h3><label class="f" for="ed-ref">DB reference</label><input type="text" id="ed-ref" value="${esc(d.ref)}">
+   <label class="f" for="ed-name">Full name</label><input type="text" id="ed-name" value="${esc(d.name)}">
+   <div class="grid2"><div><label class="f" for="ed-floor">Floor</label><input type="text" id="ed-floor" value="${esc(d.floor)}"></div><div><label class="f" for="ed-room">Room</label><input type="text" id="ed-room" value="${esc(d.room)}"></div></div>
+   <div class="row" style="margin-top:10px"><button class="btn primary" onclick="saveEditDb()">Save</button><button class="btn" onclick="renderBoard()">Cancel</button>${d.edited?'<button class="btn" onclick="resetEditDb()">Use schedule name</button>':''}</div>
+   <p class="hint">Changes show everywhere in the app and in exports. The original schedule spreadsheet isn't changed.</p>`;
+  document.getElementById('ed-ref').focus()}
+function saveEditDb(){const a=curPin().asset,d=BY_ASSET[a],v=i=>document.getElementById(i).value.trim();const e={ref:v('ed-ref')||d.ref,name:v('ed-name')||d.name,floor:v('ed-floor'),room:v('ed-room')};
+  if(d.custom)Object.assign(data.customDbs.find(x=>x.asset===a),e);else data.dbEdits[a]=e;rebuildDbs();scheduleSave();drawPins();renderSheet();toast('Board details saved')}
+function resetEditDb(){delete data.dbEdits[curPin().asset];rebuildDbs();scheduleSave();drawPins();renderSheet();toast('Back to the schedule name')}
+
+/* ============ files (photos, diagrams, invoices) ============ */
+function findFile(id){for(const m of allMaps())for(const p of pinsOf(m.id)){for(const kind of ['photos','diagrams']){const g=(p[kind]||[]).find(x=>x.id===id);if(g)return{g,list:p[kind]}}
+  for(const r of p.remedials||[]){for(const kind of ['invoices','beforePhotos','afterPhotos']){const g=(r[kind]||[]).find(x=>x.id===id);if(g)return{g,list:r[kind],rem:r}}}}return null}
+async function getFileData(id){let v=await sget(KFILE+id);if(!v&&CLOUD){try{const j=await api('getFile',{id:'f_'+id});if(j.data){v=j.data;await sset(KFILE+id,v)}}catch(e){}}return v}
+async function viewFile(id){
+  const F=findFile(id);if(!F)return;const g=F.g,ov=document.getElementById('ovl'),fromRem=S.view2==='rem';
+  ov.innerHTML=`<div class="ov dark"><header><button class="hbtn" onclick="${fromRem?'openRemedials()':'closeOv()'}">‹ Back</button><h1>${esc(g.name||'Photo')}</h1><button class="hbtn" onclick="armed(this,()=>removeFile('${id}'))">Delete</button></header><div class="viewer"><div class="loading" style="color:#ccc">Loading…</div></div></div>`;
+  const src=await getFileData(id),v=ov.querySelector('.viewer');if(!v)return;
+  if(!src){v.innerHTML=`<div class="loading" style="color:#ccc">This file couldn't be loaded${CLOUD?'':'. It may have been added on another device'}.</div>`;return}
+  if(g.type==='img')v.innerHTML=`<img src="${src}" alt="" onclick="this.classList.toggle('full')" title="Tap to zoom">`;
+  else{const url=URL.createObjectURL(await (await fetch(src)).blob());v.innerHTML=`<object data="${url}" type="application/pdf"><div class="wrap" style="color:#fff"><p>This phone can't show PDFs here.</p><a class="btn primary" href="${url}" download="${esc(g.name)}">Download PDF</a></div></object>`}
+}
+async function removeFile(id){const F=findFile(id);if(!F)return;await sdel(KFILE+id);F.list.splice(F.list.indexOf(F.g),1);scheduleSave();if(S.view2==='rem')openRemedials();else{closeOv();renderSheet()}}
+async function addRemFile(mid,pid,rid,kind,inp){
+  const p=pinsOf(mid).find(x=>x.id===pid),r=p.remedials.find(x=>x.id===rid),files=[...inp.files];if(!files.length)return;r[kind]=r[kind]||[];toast('Adding…');let n=0;
+  for(const f of files){try{const id=uid(),raw=await readFile(f);let meta;
+    if(f.type==='application/pdf'){if(raw.length>6e6){toast(f.name+' is too big. Photograph it instead.');continue}if(!await sset(KFILE+id,raw))continue;meta={id,name:f.name,type:'pdf'}}
+    else{const big=await compressImage(raw,2000,.85),th=await compressImage(raw,240,.7);if(!await sset(KFILE+id,big.data))continue;meta={id,name:f.name,type:'img',thumb:th.data}}
+    r[kind].push(meta);queueUpload(KFILE+id,'f_'+id);n++}catch(e){toast(f.name+' could not be read')}}
+  S.openRem=rid;scheduleSave();openRemedials();if(n)toast(plural(n,'file')+' added');
+}
+
+/* ============ QR labels and scanning ============ */
+const QR_CDN='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+const XLSX_CDN='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+const _scripts={};
+function loadScript(src){return _scripts[src]||(_scripts[src]=new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=()=>res();s.onerror=()=>{delete _scripts[src];rej(new Error('Needs an internet connection the first time'))};document.head.appendChild(s)}))}
+const siteName=()=>(data.site||{}).name||(CLOUD&&CLOUD.siteName)||DEFAULT_SITE;
+function appLink(){const s=(data.site||{}).appUrl;if(s)return s;if(/^https?:/.test(location.protocol)&&!/claude\.ai|anthropic|claudeusercontent/.test(location.host))return location.origin+location.pathname;return ''}
+const dbLink=a=>appLink()+'#db='+encodeURIComponent(a)+(CLOUD?'&site='+encodeURIComponent(CLOUD.site):'');
+async function qrDataUrl(text,size){await loadScript(QR_CDN);const div=document.createElement('div');new QRCode(div,{text,width:size,height:size,correctLevel:QRCode.CorrectLevel.M});return div.querySelector('canvas').toDataURL('image/png')}
+function fitText(x,t,X,Y,maxW,lh,lines){const words=String(t||'').split(/\s+/).filter(Boolean);let line='',n=0;
+  for(let i=0;i<words.length;i++){const test=line?line+' '+words[i]:words[i];
+    if(x.measureText(test).width>maxW&&line){if(n===lines-1){let r=words.slice(i-line.split(' ').length).join(' ');while(x.measureText(r+'…').width>maxW&&r.length>1)r=r.slice(0,-1);x.fillText(r+'…',X,Y+n*lh);return}x.fillText(line,X,Y+n*lh);n++;line=words[i]}else line=test}
+  if(line){while(x.measureText(line).width>maxW&&line.length>1)line=line.slice(0,-1);x.fillText(line,X,Y+n*lh)}}
+async function labelPng(asset){
+  const d=BY_ASSET[asset],img=await loadImg(await qrDataUrl(dbLink(asset),480));
+  const c=document.createElement('canvas');c.width=900;c.height=420;const x=c.getContext('2d');
+  x.fillStyle='#fff';x.fillRect(0,0,900,420);x.strokeStyle='#003F2D';x.lineWidth=8;x.strokeRect(4,4,892,412);x.drawImage(img,26,26,368,368);
+  x.fillStyle='#003F2D';x.fillRect(410,26,464,48);x.fillStyle='#fff';x.font='600 26px Barlow, Arial, sans-serif';fitText(x,siteName(),424,60,440,30,1);
+  x.fillStyle='#000';x.font='700 62px "Barlow Condensed", "Arial Narrow", Arial, sans-serif';fitText(x,d.ref,420,150,456,62,2);
+  x.fillStyle='#333';x.font='500 28px Barlow, Arial, sans-serif';fitText(x,d.building,420,262,456,32,1);fitText(x,d.room,420,302,456,32,1);
+  x.fillStyle='#666';x.font='500 22px monospace';if(!d.custom)x.fillText(d.asset,420,380);
+  return c.toDataURL('image/png');
+}
+async function showQR(asset){
+  const d=BY_ASSET[asset],ov=document.getElementById('ovl');
+  if(!appLink()){ov.innerHTML=`<div class="ov"><header><button class="hbtn" onclick="closeOv()">‹ Back</button><h1>QR label</h1></header><div class="body"><div class="wrap">
+    <p>QR labels need the web address of your installed app, so a phone camera knows where to open the board.</p><p class="hint">Once the app is hosted (see the setup guide), open it from its link and the address fills in by itself. You can also type it in Site settings.</p>
+    <button class="btn primary" onclick="openSite()">Open Site settings</button></div></div></div>`;return}
+  ov.innerHTML=`<div class="ov"><header><button class="hbtn" onclick="closeOv()">‹ Back</button><h1>QR label, ${esc(d.ref)}</h1></header><div class="body"><div class="wrap"><div class="card" style="text-align:center">Making label…</div></div></div></div>`;
+  try{const png=await labelPng(asset);ov.querySelector('.wrap').innerHTML=`<img src="${png}" alt="QR label for ${esc(d.ref)}" style="width:100%;border-radius:6px;box-shadow:0 1px 6px rgba(0,0,0,.15)">
+    <div class="row" style="margin-top:12px"><a class="btn primary" href="${png}" download="QR-${esc(d.ref.replace(/[^\w-]+/g,'_'))}.png">Download label</a><button class="btn" onclick="printLabels(['${esc(asset)}'])">Print</button></div>
+    <p class="hint">Scanning it with any phone camera opens this board in the app. Print on weatherproof label stock and stick it inside the DB door.</p><p class="hint" style="word-break:break-all">${esc(dbLink(asset))}</p>`}
+  catch(e){ov.querySelector('.wrap').innerHTML=`<div class="warn">${esc(e.message)}</div>`}
+}
+async function printLabels(assets){
+  if(!appLink()){showQR(assets[0]);return}
+  toast('Preparing '+plural(assets.length,'label')+'…');let w=document.getElementById('printwrap');if(!w){w=document.createElement('div');w.id='printwrap';document.body.appendChild(w)}
+  try{const pngs=[];for(const a of assets)pngs.push(await labelPng(a));w.innerHTML=pngs.map(p=>`<img src="${p}" alt="">`).join('');
+    document.body.classList.add('printing');setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove('printing'),500)},300)}
+  catch(e){toast(e.message)}
+}
+let scanStream=null;
+async function openScanner(){
+  if(!('BarcodeDetector' in window)){toast('Scanning isn\'t supported here. Use your phone\'s camera app on the QR label instead.');return}
+  const ov=document.getElementById('ovl');ov.innerHTML=`<div class="ov dark"><header><button class="hbtn" onclick="closeScanner()">‹ Back</button><h1>Scan a DB label</h1></header><div class="viewer" style="flex-direction:column"><video id="scanv" playsinline muted style="width:100%;max-height:75vh;object-fit:cover;background:#000"></video><p style="color:#ddd;text-align:center;padding:10px">Point the camera at the QR label on the board.</p></div></div>`;
+  try{scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});const v=document.getElementById('scanv');v.srcObject=scanStream;await v.play();
+    const det=new BarcodeDetector({formats:['qr_code']});
+    const tick=async()=>{if(!scanStream)return;try{const r=await det.detect(v);if(r.length){handleScan(r[0].rawValue);return}}catch(e){}setTimeout(tick,250)};tick()}
+  catch(e){closeScanner();toast('Camera not available. Check the camera permission for this app.')}
+}
+function closeScanner(){if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null}closeOv()}
+function handleScan(raw){const i=raw.indexOf('#'),q=new URLSearchParams(i>=0?raw.slice(i+1):(raw.split('?')[1]||''));const a=q.get('db');closeScanner();if(a)goToAssetOrBuilding(a);else toast('That QR code isn\'t a DB label')}
+function goToAssetOrBuilding(a){const at=placed()[a];if(at){openMap(at.map.id,at.pin.id);return}const d=BY_ASSET[a];if(!d){toast('That board isn\'t on this site');return}
+  const m=allMaps().find(x=>bKey(x)===d.building);if(m)openMap(m.id);toast(d.ref+' isn\'t placed on a map yet')}
+function handleHash(){const q=new URLSearchParams(location.hash.slice(1)),a=q.get('db');if(a){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}goToAssetOrBuilding(a)}}
+
+/* ============ visual board tree ============ */
+function openTree(b){
+  if(b)S.treeB=b;const blds=[...new Set(DBS.map(d=>d.building).filter(Boolean))].sort();if(!S.treeB||!blds.includes(S.treeB))S.treeB=blds[0];S.treeZ=S.treeZ||1;
+  const pl=placed(),inB=DBS.filter(d=>d.building===S.treeB),scope=new Set(inB.map(d=>d.asset));
+  const up=a=>{let p=parentOf(a),g=0;while(p&&p!=='SUPPLY'&&!scope.has(p)&&BY_ASSET[p]&&g++<60){scope.add(p);p=parentOf(p)}};
+  const down=a=>{for(const c of childrenOf(a))if(!scope.has(c)&&BY_ASSET[c]){scope.add(c);down(c)}};
+  inB.forEach(d=>{up(d.asset);down(d.asset)});
+  const byRef=(x,y)=>(BY_ASSET[x]?.ref||'').localeCompare(BY_ASSET[y]?.ref||'',undefined,{numeric:true});
+  const kidsOf=a=>childrenOf(a).filter(c=>scope.has(c)&&BY_ASSET[c]).sort(byRef);
+  const linked=[...scope].filter(a=>BY_ASSET[a]&&(parentOf(a)||kidsOf(a).length));
+  const loose=[...scope].filter(a=>BY_ASSET[a]&&!linked.includes(a)).sort(byRef);
+  const seen=new Set(),mk=a=>{seen.add(a);return{a,kids:kidsOf(a).filter(c=>!seen.has(c)).map(mk)}};
+  const roots=[],sup=linked.filter(a=>parentOf(a)==='SUPPLY').sort(byRef);
+  if(sup.length)roots.push({root:'Main intake',sub:'Incoming supply',kids:sup.map(mk)});
+  linked.filter(a=>!seen.has(a)&&parentOf(a)!=='SUPPLY'&&!(parentOf(a)&&scope.has(parentOf(a)))).sort(byRef).forEach(a=>{if(!seen.has(a))roots.push(mk(a))});
+  const W=150,H=58,GX=14,GY=44;
+  const meas=n=>{n.kids.forEach(meas);n.kw=n.kids.reduce((s,k)=>s+k.w,0)+GX*Math.max(0,n.kids.length-1);n.w=Math.max(W,n.kw)};
+  const place=(n,x,y)=>{n.x=x+(n.w-W)/2;n.y=y;let cx=x+(n.w-n.kw)/2;n.kids.forEach(k=>{place(k,cx,y+H+GY);cx+=k.w+GX})};
+  let X=0;roots.forEach(r=>{meas(r);place(r,X,0);X+=r.w+GX*3});
+  const nodes=[],paths=[];let maxY=0;
+  const walk=n=>{nodes.push(n);maxY=Math.max(maxY,n.y);if(n.kids.length){const px=n.x+W/2,py=n.y+H,my=py+GY/2,xs=n.kids.map(k=>k.x+W/2);
+    paths.push(`M${px} ${py}V${my}`,`M${Math.min(...xs,px)} ${my}H${Math.max(...xs,px)}`,...n.kids.map(k=>`M${k.x+W/2} ${my}V${k.y}`))}n.kids.forEach(walk)};
+  roots.forEach(walk);
+  const TW=Math.max(X-GX*3,W),TH=maxY+H,z=S.treeZ;
+  const nodeHtml=n=>{const st={left:n.x,top:n.y};if(n.root)return `<div class="tn root" style="left:${st.left}px;top:${st.top}px"><i style="background:#FFD200"></i><span><b>${esc(n.root)}</b>${esc(n.sub)}</span></div>`;
+    const d=BY_ASSET[n.a],at=pl[n.a],s=at?pinStatus(at.pin):null;
+    return `<button class="tn" style="left:${st.left}px;top:${st.top}px" onclick="goToAsset('${esc(n.a)}')" aria-label="${esc(d.ref)}, ${esc(d.room)}"><i style="background:${s?s.c:'#D5DCD8'}"></i><span><b>${esc(d.ref)}</b>${esc(d.room)}${d.building!==S.treeB?'<br>'+esc(d.building):''}${at?'':'<br><em>Not on a map</em>'}</span></button>`};
+  let h=`<div class="ov"><header><button class="hbtn" onclick="closeOv();if(S.view!=='map')renderHome()">‹ Back</button><h1>Board tree</h1></header><div class="body"><div class="wrap" style="max-width:none">
+   <div class="row" style="flex-wrap:nowrap"><select id="t-b" onchange="openTree(this.value)" aria-label="Building">${blds.map(x=>opt(x,x,S.treeB)).join('')}</select>
+   <div class="zoom" style="box-shadow:none;border:1.5px solid var(--line);flex:none"><button onclick="S.treeZ=Math.max(.35,S.treeZ/1.25);openTree()" aria-label="Zoom out">−</button><button onclick="treeFit()" style="font-size:14px">Fit</button><button onclick="S.treeZ=Math.min(1.6,S.treeZ*1.25);openTree()" aria-label="Zoom in">+</button></div></div>`;
+  if(roots.length)h+=`<div class="tv-wrap" id="tvw"><div style="width:${TW*z}px;height:${TH*z}px;position:relative"><div class="tv" style="width:${TW}px;height:${TH}px;transform:scale(${z})"><svg width="${TW}" height="${TH}" aria-hidden="true"><path d="${paths.join('')}"/></svg>${nodes.map(nodeHtml).join('')}</div></div></div>
+   <p class="hint">Coloured stripes show check status. Tap a board to open it on the map.</p>`;
+  else h+=`<div class="card">Nothing linked in ${esc(S.treeB)} yet. Open a board, go to Supply on its Board tab and choose what feeds it. Drawing a cable from one DB to another links them too.</div>`;
+  if(loose.length)h+=`<h2>Not linked yet</h2><div class="row">${loose.map(a=>`<button class="btn small" onclick="goToAsset('${esc(a)}')">${esc(BY_ASSET[a].ref)}</button>`).join('')}</div>`;
+  h+=`</div></div></div>`;
+  document.getElementById('ovl').innerHTML=h;S.treeTW=TW;
+}
+function treeFit(){const w=document.getElementById('tvw');if(!w)return;S.treeZ=Math.max(.35,Math.min(1,(w.clientWidth-8)/S.treeTW));openTree()}
+
+/* ============ cloud: team sync through Google Apps Script ============ */
+async function saveCloud(){await sset('dbmap:cloud',JSON.stringify(CLOUD))}
+async function api(action,payload={}){
+  const res=await fetch(CLOUD.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,site:CLOUD.site,pin:CLOUD.pin,...payload})});
+  if(!res.ok)throw new Error('server '+res.status);const j=await res.json();if(!j.ok)throw new Error(j.error||'server error');return j}
+const shareable=d=>{const{settings,...rest}=d;return rest};
+function snapOf(R){const o={};for(const k in R){const r=R[k];o[k]=k.startsWith('kv:')?JSON.stringify(r.v):JSON.stringify(r,(kk,v)=>kk==='u'?undefined:v)}return o}
+function stampChanges(){const R=dmFlatten(data),cur=snapOf(R),now=Date.now();let n=0;
+  if(SNAP){for(const k in cur)if(SNAP[k]!==cur[k]){n++;if(k.startsWith('kv:')){const p=k.split(':');data.kvu[p[1]+':'+p.slice(2).join(':')]=now}else R[k].u=now}
+    for(const k in SNAP)if(!(k in cur)){n++;data.tomb[k]=now}}
+  SNAP=cur;return n}
+function queueUpload(key,fid){if(!CLOUD)return;if(!PENDING.some(q=>q.fid===fid))PENDING.push({key,fid});sset('dbmap:pending',JSON.stringify(PENDING));schedulePush()}
+async function uploadPending(){if(!PENDING.length)return;const left=[];for(const q of PENDING){try{const v=await sget(q.key);if(v)await api('putFile',{id:q.fid,data:v})}catch(e){left.push(q)}}PENDING=left;await sset('dbmap:pending',JSON.stringify(PENDING))}
+function schedulePush(){clearTimeout(SYNC.t);SYNC.t=setTimeout(()=>syncNow(true),2500)}
+async function syncNow(quiet){
+  if(!CLOUD||SYNC.busy)return;SYNC.busy=true;updateSaveBtn();
+  try{
+    stampChanges();await sset(KEY,JSON.stringify(data));await uploadPending();
+    const before=JSON.stringify(shareable(data));
+    const j=await api('sync',{data:shareable(data)});
+    const n=stampChanges(),settings=data.settings;data=dmMerge(data,j.data);data.settings=settings;normalise();SNAP=snapOf(dmFlatten(data));
+    await sset(KEY,JSON.stringify(data));SYNC.last=Date.now();SYNC.err='';if(!n)dirty=false;
+    if(j.scheduleV&&j.scheduleV!==CLOUD.scheduleV)await pullSchedule();
+    if(JSON.stringify(shareable(data))!==before){rebuildDbs();refreshView()}
+    if(n)schedulePush();
+    if(Date.now()-(CLOUD.published||0)>10*60e3)publishSheet(true);
+  }catch(e){SYNC.err=e.message||'offline';if(!quiet)toast('Sync failed: '+SYNC.err)}
+  SYNC.busy=false;updateSaveBtn();
+}
+function refreshView(){
+  if(document.querySelector('#ovl .ov'))return;
+  if(S.view==='home'){renderHome();return}
+  drawAll();const act=document.activeElement;if(!(act&&act.closest&&act.closest('.sheet')))renderSheet();
+}
+async function pullSchedule(){try{const j=await api('getSchedule');if(j.schedule){await applySchedule(j.schedule,false);CLOUD.scheduleV=j.v;await saveCloud()}}catch(e){}}
+async function applySchedule(sc,push){
+  await sset('dbmap:schedule',JSON.stringify(sc));loadSchedule(sc);
+  let o=Math.max(-1,...(data.engineers||[]).map(e=>e.o??0));for(const n of ENG)if(!engNames().includes(n))data.engineers.push({id:engId(n),name:n,phone:'',email:'',o:++o});
+  rebuildDbs();scheduleSave();
+  if(push&&CLOUD){const j=await api('putSchedule',{schedule:sc});CLOUD.scheduleV=j.v;await saveCloud()}
+}
+async function publishSheet(quiet){
+  if(!CLOUD)return;try{const RM=reportModel('week');const j=await api('publish',{sheets:{Boards:exportRows(),Remedials:remRows(),Circuits:circuitRows(),'Map symbols':symRows()},report:{subject:repSubject(RM),html:reportHtml(RM,'')}});
+    CLOUD.published=Date.now();CLOUD.sheetUrl=j.url;await saveCloud();if(!quiet){toast('Google Sheet updated');if(document.getElementById('sheetlink'))openSite()}}
+  catch(e){if(!quiet)toast('Could not update the sheet: '+e.message)}
+}
+async function getMapSrc(m){let v=await sget(KIMG+m.id);if(!v&&CLOUD){try{const j=await api('getFile',{id:'map_'+m.id});if(j.data){v=j.data;await sset(KIMG+m.id,v)}}catch(e){}}return v}
+
+/* ============ site settings, schedule import, site packs ============ */
+function openSite(){
+  S.view2='site';const sc=SCHED_DBS.length,site=data.site||{};
+  let h=`<div class="ov"><header><button class="hbtn" onclick="S.view2='';closeOv();renderHome()">‹ Back</button><h1>Site settings</h1>${SB()}</header><div class="body"><div class="wrap">
+   <h2>This site</h2><label class="f" for="si-name">Site name</label><input type="text" id="si-name" value="${esc(site.name||siteName())}" oninput="data.site.name=this.value;scheduleSave()">
+   <label class="f" for="si-url">App link, used in QR labels</label><input type="text" id="si-url" inputmode="url" placeholder="https://yourname.github.io/dbmap/" value="${esc(site.appUrl||'')}" oninput="data.site.appUrl=this.value.trim();scheduleSave()">
+   <p class="hint">${appLink()?'QR labels will open: '+esc(appLink()):'Fill this in once the app is hosted, or open the hosted app and it sets itself.'}</p>
+   <h2>Team connection</h2>`;
+  if(CLOUD)h+=`<div class="card"><b>Connected to ${esc(CLOUD.siteName||CLOUD.site)}</b> (site code ${esc(CLOUD.site)})<br>${SYNC.err?'<span style="color:var(--red)">Last sync failed: '+esc(SYNC.err)+'</span>':SYNC.last?'Last synced '+new Date(SYNC.last).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'Not synced yet'}${PENDING.length?'<br>'+plural(PENDING.length,'file')+' waiting to upload':''}</div>
+   <div class="row" style="margin-top:10px"><button class="btn primary" onclick="syncNow().then(openSite)">Sync now</button><button class="btn" onclick="publishSheet()">Update Google Sheet</button>${CLOUD.sheetUrl?`<a class="btn" id="sheetlink" href="${esc(CLOUD.sheetUrl)}" target="_blank" rel="noopener">Open sheet</a>`:''}</div>
+   ${BUILTIN.length?`<button class="btn wide" style="margin-top:10px" onclick="seedCloud()">Upload this app's built-in maps and schedule to the site</button><p class="hint">Do this once from this version so the team app gets the Skegness maps and DB schedule.</p>`:''}
+   <button class="btn danger" style="margin-top:10px" onclick="armed(this,disconnectCloud,'Tap again to disconnect')">Disconnect this device</button>`;
+  else h+=`<p class="hint" style="margin-top:0">Connect to your team's backend so everyone shares the same boards, checks and remedials, and photos can be read without Claude open.</p>
+   <label class="f" for="cl-url">Backend link</label><input type="text" id="cl-url" inputmode="url" placeholder="https://script.google.com/macros/s/…/exec">
+   <div class="grid2"><div><label class="f" for="cl-site">Site code</label><input type="text" id="cl-site" autocapitalize="characters" placeholder="SKEG"></div><div><label class="f" for="cl-pin">PIN</label><input type="text" id="cl-pin" inputmode="numeric" autocomplete="off"></div></div>
+   <button class="btn primary" style="margin-top:12px" onclick="connectCloud()">Connect</button>`;
+  h+=`<h2>DB schedule</h2><p style="margin-top:0">${sc?plural(sc,'board')+' across '+plural(BLD.length,'building')+', '+plural(Object.keys(WEEKS).length,'week')+'.':'No schedule loaded yet.'}</p>
+   <label class="btn">Import schedule spreadsheet<input type="file" accept=".xlsx,.xls,.csv" hidden onchange="importSchedule(this)"></label>
+   <p class="hint">Use the same layout as the Engineer Assignments sheet: columns for Wk, W/C, W/E, Engineer, Asset Code, DB Name, Building, Floor and Room. ${CLOUD?'The new schedule is shared with the whole site.':''}</p>
+   <div id="schedprev"></div>
+   <h2>Site pack</h2><p class="hint" style="margin-top:0">A site pack holds the maps, schedule, engineers and all board data in one file. Use it to move a site into the team app or set up a new site.</p>
+   <div class="row" style="margin-top:8px"><button class="btn" onclick="exportPack()">Export site pack</button><label class="btn">Import site pack<input type="file" accept=".json,application/json" hidden onchange="importPack(this)"></label></div>
+   <p class="hint">Board photos and diagrams aren't included in a pack. They stay on this device${CLOUD?' and in the team backend':''}.</p>
+  </div></div></div>`;
+  document.getElementById('ovl').innerHTML=h;updateSaveBtn();
+}
+async function connectCloud(){
+  const url=document.getElementById('cl-url').value.trim(),site=document.getElementById('cl-site').value.trim().toUpperCase(),pin=document.getElementById('cl-pin').value.trim();
+  if(!/^https:\/\/script\.google\.com\/.+\/exec/.test(url)){toast('Paste the web app link ending in /exec');return}
+  if(!site||!pin){toast('Enter the site code and PIN');return}
+  CLOUD={url,site,pin};toast('Connecting…');
+  try{const j=await api('ping');CLOUD.siteName=j.siteName;CLOUD.scheduleV=0;await saveCloud();
+    if(!data.site.name)data.site.name=j.siteName;
+    if(j.hasSchedule)await pullSchedule();
+    PENDING=[];for(const m of data.custom)PENDING.push({key:KIMG+m.id,fid:'map_'+m.id});
+    for(const m of allMaps())for(const p of pinsOf(m.id)){for(const g of [...(p.photos||[]),...(p.diagrams||[])])PENDING.push({key:KFILE+g.id,fid:'f_'+g.id});for(const r of p.remedials||[])for(const g of r.invoices||[])PENDING.push({key:KFILE+g.id,fid:'f_'+g.id})}
+    await sset('dbmap:pending',JSON.stringify(PENDING));
+    await syncNow();toast('Connected to '+j.siteName);openSite();
+  }catch(e){CLOUD=null;toast('Could not connect: '+e.message)}
+}
+async function disconnectCloud(){CLOUD=null;await sdel('dbmap:cloud');SYNC.err='';updateSaveBtn();openSite();toast('Disconnected. Data stays on this device.')}
+async function seedCloud(){
+  if(!CLOUD)return;toast('Uploading maps and schedule…');
+  try{for(const m of BUILTIN){if(!data.custom.some(c=>c.id===m.id)){const th=await compressImage(m.src,300,.7);data.custom.push({id:m.id,name:m.name,building:m.building||'',w:m.w,h:m.h,thumb:th.data})}
+      await sset(KIMG+m.id,m.src);if(!PENDING.some(q=>q.fid==='map_'+m.id))PENDING.push({key:KIMG+m.id,fid:'map_'+m.id})}
+    await sset('dbmap:pending',JSON.stringify(PENDING));
+    if(SCHED&&SCHED.r&&SCHED.r.length){const j=await api('putSchedule',{schedule:SCHED});CLOUD.scheduleV=j.v;await saveCloud()}
+    scheduleSave();await syncNow();toast('Maps and schedule are on the site');openSite();
+  }catch(e){toast('Upload failed: '+e.message)}
+}
+function parseWhen(v){if(!v)return null;if(v instanceof Date&&!isNaN(v))return v;const s=String(v).trim();let m=s.match(/^(\d{1,2})[\s\/\-]([A-Za-z]{3,})[\s\/\-,]+(\d{4})/);
+  if(m){const mo=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'].indexOf(m[2].slice(0,3).toLowerCase());if(mo>=0)return new Date(+m[3],mo,+m[1])}
+  m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);if(m)return new Date(+(m[3].length===2?'20'+m[3]:m[3]),+m[2]-1,+m[1]);const d=new Date(s);return isNaN(d)?null:d}
+const dmy=d=>d?d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}).replace('Sept','Sep'):'';
+async function importSchedule(inp){
+  const f=inp.files[0];if(!f)return;const el=document.getElementById('schedprev');el.innerHTML='<div class="card">Reading spreadsheet…</div>';
+  try{await loadScript(XLSX_CDN);const wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true});
+    const name=wb.SheetNames.find(n=>/engineer assign/i.test(n))||wb.SheetNames.find(n=>XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:true}).slice(0,15).some(r=>r.some(c=>/asset code/i.test(String(c||'')))))||wb.SheetNames[0];
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,raw:true,defval:''});
+    const hi=rows.findIndex(r=>r.some(c=>/asset code/i.test(String(c))));if(hi<0)throw new Error('No "Asset Code" column found');
+    const hd=rows[hi].map(c=>String(c).trim()),col=re=>hd.findIndex(h=>re.test(h));
+    const C={wk:col(/^wk$|^week$|^week no/i),wc:col(/w\/c|week comm|start/i),we:col(/w\/e|week end/i),eng:col(/^engineer$|^engineer name|^assigned/i),asset:col(/asset code/i),name:col(/db name|board name|^name$/i),bld:col(/building/i),floor:col(/floor|level/i),room:col(/room|location/i)};
+    if(C.eng<0)C.eng=col(/engineer/i);
+    const b=[],e=[],w={},r=[];const ix=(l,v)=>{v=String(v||'').trim();let i=l.indexOf(v);if(i<0){l.push(v);i=l.length-1}return i};
+    for(const row of rows.slice(hi+1)){const asset=String(row[C.asset]||'').trim();if(!asset)continue;
+      const wk=C.wk>=0?parseInt(row[C.wk]):NaN;
+      if(!isNaN(wk)&&!w[wk]){const s=parseWhen(row[C.wc]),en=parseWhen(row[C.we])||(s?new Date(s.getTime()+4*864e5):null);if(s)w[wk]=[dmy(s),dmy(en),ymd(s)]}
+      r.push([asset,String(row[C.name]||asset).trim(),ix(b,row[C.bld]),String(row[C.floor]||'').trim(),String(row[C.room]||'').trim(),ix(e,row[C.eng]),isNaN(wk)?null:wk])}
+    if(!r.length)throw new Error('No boards found under the header row');
+    S.pendingSched={b,e:e.filter(Boolean).length?e:e,w,r};
+    el.innerHTML=`<div class="card"><b>${esc(f.name)}</b>, sheet "${esc(name)}"<br>${plural(r.length,'board')}, ${plural(b.length,'building')}, ${plural(e.filter(Boolean).length,'engineer')}, ${plural(Object.keys(w).length,'week')}.</div>
+     <div class="row" style="margin-top:8px"><button class="btn primary" onclick="confirmSchedule()">Replace the schedule</button><button class="btn" onclick="S.pendingSched=null;openSite()">Cancel</button></div>
+     <p class="hint">Pins already linked to boards keep their links wherever the asset codes match.</p>`;
+  }catch(err){el.innerHTML=`<div class="warn">${esc(err.message)}</div>`}
+}
+async function confirmSchedule(){try{await applySchedule(S.pendingSched,true);S.pendingSched=null;toast('Schedule imported');openSite()}catch(e){toast('Import failed: '+e.message)}}
+async function exportPack(){
+  toast('Building site pack…');
+  try{const maps=[];for(const m of allMaps()){const src=m.src||await getMapSrc(m);if(src)maps.push({id:m.id,name:m.name,building:buildingOf(m),w:m.w,h:m.h,src})}
+    stampChanges();const pack={type:'dbmap-site-pack',v:1,siteName:siteName(),exported:new Date().toISOString(),schedule:SCHED&&SCHED.r&&SCHED.r.length?SCHED:null,maps,data:shareable(data)};
+    download(siteName().replace(/[^\w]+/g,'-')+'-site-pack.json',JSON.stringify(pack),'application/json');toast('Site pack downloaded')}
+  catch(e){toast('Export failed: '+e.message)}
+}
+async function importPack(inp){
+  const f=inp.files[0];if(!f)return;toast('Importing…');
+  try{const pack=JSON.parse(await f.text());if(pack.type!=='dbmap-site-pack')throw new Error('That isn\'t a site pack file');
+    if(pack.schedule)await applySchedule(pack.schedule,!!CLOUD);
+    let nm=0;for(const m of pack.maps||[]){if(allMaps().some(x=>x.id===m.id))continue;await sset(KIMG+m.id,m.src);const th=await compressImage(m.src,300,.7);data.custom.push({id:m.id,name:m.name,building:m.building||'',w:m.w,h:m.h,thumb:th.data});queueUpload(KIMG+m.id,'map_'+m.id);nm++}
+    if(pack.data){stampChanges();const settings=data.settings;data=dmMerge(data,pack.data);data.settings=settings;normalise();SNAP=snapOf(dmFlatten(data))}
+    if(pack.siteName&&!data.site.name)data.site.name=pack.siteName;
+    rebuildDbs();await saveData();if(CLOUD)await syncNow(true);toast(`Imported ${plural(nm,'map')}${pack.schedule?', schedule':''}${pack.data?' and board data':''}`);openSite();
+  }catch(e){toast('Import failed: '+e.message)}
+}
+let installEvt=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;if(S.view==='home'&&!document.querySelector('#ovl .ov'))renderHome()});
+async function installApp(){if(!installEvt)return;installEvt.prompt();await installEvt.userChoice;installEvt=null;renderHome()}
+
+/* ============ progress report for managers ============ */
+function reportRange(period){
+  const wk=currentWeek(),ks=Object.keys(WEEKS).map(Number).sort((a,b)=>a-b),st=n=>WEEKS[n]?WEEKS[n][2]:null,t=today();
+  if(period==='week'){const s=st(wk)||addDays(t,-6);return{from:s,to:addDays(s,6),label:WEEKS[wk]?`Week ${wk}, ${WEEKS[wk][0]} to ${WEEKS[wk][1]}`:'This week'}}
+  if(period==='last'){const n=Math.max(ks[0]||1,wk-1),s=st(n)||addDays(t,-13);return{from:s,to:addDays(s,6),label:WEEKS[n]?`Week ${n}, ${WEEKS[n][0]} to ${WEEKS[n][1]}`:'Last week'}}
+  if(period==='4w'){const n=Math.max(ks[0]||1,wk-3),s=st(n)||addDays(t,-27);return{from:s,to:t,label:`Last 4 weeks, ${fmt(s)} to ${fmt(t)}`}}
+  const s=st(ks[0])||'2000-01-01';return{from:s,to:t,label:`Schedule to date, ${fmt(s)} to ${fmt(t)}`};
+}
+function reportModel(period){
+  const R=reportRange(period),inP=s=>!!s&&s>=R.from&&s<=R.to,wk=currentWeek(),pl=placed();
+  const signed=a=>{const at=pl[a];return !!(at&&at.pin.checks&&at.pin.checks.AF)};
+  const sched=DBS.filter(d=>d.wk),due=sched.filter(d=>d.wk<=wk),overdue=sched.filter(d=>d.wk<wk&&!signed(d.asset));
+  const allPins=allMaps().flatMap(m=>pinsOf(m.id).map(p=>({m,p})));
+  const signedInP=allPins.filter(x=>x.p.checks&&x.p.checks.AF&&inP(x.p.checks.date));
+  const engs=[...engNames()];if(sched.some(d=>!d.engineer))engs.push('');
+  const byEng=engs.map(n=>{const ds=sched.filter(d=>(d.engineer||'')===n),du=ds.filter(d=>d.wk<=wk);
+    return{n:n||'Unassigned',total:ds.length,due:du.length,done:du.filter(d=>signed(d.asset)).length,over:ds.filter(d=>d.wk<wk&&!signed(d.asset)).length,period:signedInP.filter(x=>((BY_ASSET[x.p.asset]||{}).engineer||'')===n).length}}).filter(e=>e.total||e.period);
+  const bl={};for(const d of due){const b=bl[d.building]||(bl[d.building]={b:d.building,due:0,done:0});b.due++;if(signed(d.asset))b.done++}
+  const byBld=Object.values(bl).sort((a,b)=>(b.due-b.done)-(a.due-a.done)||a.b.localeCompare(b.b)).slice(0,12);
+  const rems=allRems(),open=rems.filter(x=>x.r.status!=='Completed'),codes={C1:0,C2:0,FI:0,C3:0,'':0};open.forEach(x=>codes[x.r.code||'']++);
+  const order=['C1','C2','FI'],danger=open.filter(x=>order.includes(x.r.code)).sort((a,b)=>order.indexOf(a.r.code)-order.indexOf(b.r.code)||(a.r.raised||'').localeCompare(b.r.raised||''));
+  const quoted=open.filter(x=>['Quoted','Approved'].includes(x.r.status)).reduce((s,x)=>s+(parseFloat(x.r.quote)||0),0);
+  const rcd=allPins.map(x=>rcdDue(x.p)).filter(Boolean);
+  const next=sched.filter(d=>d.wk===wk+1);
+  return{R,wk,sched,due,done:due.filter(d=>signed(d.asset)).length,doneAll:sched.filter(d=>signed(d.asset)).length,overdue,signedInP,byEng,byBld,open,codes,danger,quoted,
+    raisedP:rems.filter(x=>inP(x.r.raised)).length,compP:rems.filter(x=>x.r.status==='Completed'&&inP(x.r.completedDate)).length,
+    rcdOver:rcd.filter(r=>r.days<0).length,rcdSoon:rcd.filter(r=>r.days>=0&&r.days<=30).length,
+    next,nextByEng:engs.map(n=>{const ds=next.filter(d=>(d.engineer||'')===n);return{n:n||'Unassigned',c:ds.length,b:[...new Set(ds.map(d=>d.building))]}}).filter(x=>x.c),
+    placedCount:sched.filter(d=>pl[d.asset]).length};
+}
+const money=v=>'£'+v.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
+function reportHtml(M,note){
+  const G='#003F2D',F='Arial,Helvetica,sans-serif',pct=(a,b)=>b?Math.round(a/b*100):0,col=p=>p>=90?'#1E8A4C':p>=70?'#D98200':'#C8261E';
+  const bar=(p,c)=>`<div style="background:#E4E9E5;border-radius:4px;height:10px;width:100%;min-width:60px"><div style="width:${Math.max(0,Math.min(100,p))}%;background:${c};height:10px;border-radius:4px"></div></div>`;
+  const kpi=(v,l,c)=>`<td style="width:25%;padding:10px 6px;border:1px solid #D5DCD8;border-radius:6px;text-align:center;background:#fff;vertical-align:top"><div style="font:700 26px ${F};color:${c}">${v}</div><div style="font:12px ${F};color:#5A6862;margin-top:3px;line-height:1.3">${l}</div></td>`;
+  const TH=`style="text-align:left;font:600 12px ${F};color:#5A6862;padding:6px;border-bottom:2px solid #D5DCD8"`,TD=`style="font:13px ${F};color:#15201C;padding:6px;border-bottom:1px solid #E4E9E5;vertical-align:middle"`;
+  const h2=t=>`<h2 style="font:700 17px ${F};color:${G};margin:24px 0 8px">${t}</h2>`,P=t=>`<p style="font:14px ${F};color:#15201C;margin:6px 0;line-height:1.5">${t}</p>`;
+  const overall=pct(M.done,M.due.length),dangerN=M.codes.C1+M.codes.C2+M.codes.FI;
+  let h=`<div style="max-width:680px;margin:0 auto;background:#fff;color:#15201C">
+  <div style="background:${G};color:#fff;padding:16px 18px;border-radius:8px 8px 0 0"><div style="font:600 13px ${F};color:#BFE3D2">${esc(siteName())}</div><div style="font:700 22px ${F};margin-top:2px;color:#fff">DB inspection progress</div><div style="font:13px ${F};color:#E0EEE7;margin-top:4px">${esc(M.R.label)}. Generated ${esc(new Date().toLocaleString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}))}.</div></div>
+  <div style="padding:12px 16px 18px;border:1px solid #D5DCD8;border-top:0;border-radius:0 0 8px 8px">`;
+  if(note&&note.trim())h+=`<div style="background:#F3F6F4;border-left:4px solid ${G};padding:10px 12px;font:14px ${F};margin:4px 0 10px;white-space:pre-wrap;line-height:1.5">${esc(note.trim())}</div>`;
+  h+=`<table role="presentation" style="width:100%;border-collapse:separate;border-spacing:6px"><tr>${kpi(overall+'%','of boards due so far are signed off',col(overall))}${kpi(M.signedInP.length,'boards signed off in this period',G)}${kpi(M.overdue.length,'boards overdue',M.overdue.length?'#C8261E':'#1E8A4C')}${kpi(dangerN,'open C1, C2 or FI remedials',dangerN?'#C8261E':'#1E8A4C')}</tr></table>`;
+  h+=P(`<b>${M.done} of ${M.due.length}</b> boards due by week ${M.wk} are signed off. Across the full schedule of ${M.sched.length} boards, <b>${M.doneAll}</b> are signed off (${pct(M.doneAll,M.sched.length)}%).`);
+  if(M.byEng.length){h+=h2('Progress by engineer')+`<table style="width:100%;border-collapse:collapse"><tr><th ${TH}>Engineer</th><th ${TH}>Signed off / due</th><th ${TH} style="width:34%"></th><th ${TH}>Overdue</th><th ${TH}>This period</th></tr>`+
+    M.byEng.map(e=>{const p=pct(e.done,e.due);return `<tr><td ${TD}><b>${esc(e.n)}</b></td><td ${TD}>${e.done} / ${e.due}</td><td ${TD}>${bar(p,col(p))}</td><td ${TD}${e.over?' style="font:700 13px '+F+';color:#C8261E;padding:6px;border-bottom:1px solid #E4E9E5"':''}>${e.over}</td><td ${TD}>${e.period}</td></tr>`}).join('')+`</table>`}
+  if(M.byBld.length){h+=h2('Buildings with the most outstanding')+`<table style="width:100%;border-collapse:collapse"><tr><th ${TH}>Building</th><th ${TH}>Done / due</th><th ${TH} style="width:40%"></th></tr>`+
+    M.byBld.map(b=>{const p=pct(b.done,b.due);return `<tr><td ${TD}>${esc(b.b)}</td><td ${TD}>${b.done} / ${b.due}</td><td ${TD}>${bar(p,col(p))}</td></tr>`}).join('')+`</table>`}
+  h+=h2('Remedials')+P(`<b>${M.open.length}</b> open: ${M.codes.C1} C1, ${M.codes.C2} C2, ${M.codes.FI} FI, ${M.codes.C3} C3${M.codes['']?', '+M.codes['']+' not coded':''}. In this period ${plural(M.raisedP,'remedial')} ${M.raisedP===1?'was':'were'} raised and ${M.compP} completed.${M.quoted?' '+money(M.quoted)+' is quoted or approved and not yet done.':''}`);
+  if(M.danger.length)h+=`<table style="width:100%;border-collapse:collapse;margin-top:6px"><tr><th ${TH}>Code</th><th ${TH}>Board</th><th ${TH}>Issue</th><th ${TH}>Status</th><th ${TH}>Open</th></tr>`+
+    M.danger.slice(0,15).map(({m,p,r})=>{const d=BY_ASSET[p.asset]||{},rg=r.reg==='Other'?r.regOther:r.reg,age=r.raised?Math.max(0,-daysTo(r.raised)):null,cc=r.code==='C1'?'#C8261E':r.code==='C2'?'#E0662B':'#1565C0';
+      return `<tr><td ${TD}><span style="background:${cc};color:#fff;font:700 12px ${F};padding:2px 6px;border-radius:3px">${esc(r.code)}</span></td><td ${TD}><b>${esc(d.ref||'Pin '+p.num)}</b><br><span style="color:#5A6862">${esc(d.building||m.name)}</span></td><td ${TD}>${esc([rg,r.obs].filter(Boolean).join(': ')||'No details')}</td><td ${TD}>${esc(r.status||'Open')}</td><td ${TD}>${age==null?'':plural(age,'day')}</td></tr>`}).join('')+`</table>`+(M.danger.length>15?P(`<span style="color:#5A6862">Plus ${M.danger.length-15} more in the remedials register.</span>`):'');
+  h+=h2('RCD 6-monthly tests')+P(M.rcdOver||M.rcdSoon?`<b style="color:${M.rcdOver?'#C8261E':'#15201C'}">${M.rcdOver} overdue</b>, ${M.rcdSoon} due in the next 30 days.`:'None overdue or due in the next 30 days.');
+  if(M.nextByEng.length)h+=h2(`Next week, week ${M.wk+1}`)+`<table style="width:100%;border-collapse:collapse"><tr><th ${TH}>Engineer</th><th ${TH}>Boards</th><th ${TH}>Where</th></tr>`+M.nextByEng.map(x=>`<tr><td ${TD}>${esc(x.n)}</td><td ${TD}>${x.c}</td><td ${TD}>${esc(x.b.join(', '))}</td></tr>`).join('')+`</table>`;
+  h+=P(`<span style="color:#5A6862;font-size:12px">${M.placedCount} of ${M.sched.length} scheduled boards are placed on site maps. Figures count a board as done once an engineer has signed it off in DB Map.</span>`);
+  return h+`</div></div>`;
+}
+function reportText(M,note){const pct=(a,b)=>b?Math.round(a/b*100):0;
+  return [`DB inspection progress – ${siteName()}`,M.R.label,'',...(note&&note.trim()?[note.trim(),'']:[]),
+   `${pct(M.done,M.due.length)}% of boards due so far are signed off (${M.done} of ${M.due.length}).`,`${M.signedInP.length} boards signed off in this period.`,`${M.overdue.length} boards overdue.`,
+   `Remedials: ${M.open.length} open (C1 ${M.codes.C1}, C2 ${M.codes.C2}, FI ${M.codes.FI}, C3 ${M.codes.C3}).${M.quoted?' '+money(M.quoted)+' quoted, not yet done.':''}`,
+   `RCD tests: ${M.rcdOver} overdue, ${M.rcdSoon} due in 30 days.`,'','By engineer:',...M.byEng.map(e=>`  ${e.n}: ${e.done} of ${e.due} signed off${e.over?', '+e.over+' overdue':''}`),
+   ...(M.nextByEng.length?['',`Next week (week ${M.wk+1}):`,...M.nextByEng.map(x=>`  ${x.n}: ${plural(x.c,'board')}`)]:[])].join('\n')}
+const repSubject=M=>`DB inspection progress – ${siteName()} – ${M.R.label}`;
+function openReport(){
+  S.view2='report';S.repP=S.repP||'week';const M=reportModel(S.repP),site=data.site||{};
+  document.getElementById('ovl').innerHTML=`<div class="ov"><header><button class="hbtn" onclick="S.view2='';closeOv();renderHome()">‹ Back</button><h1>Progress report</h1>${SB()}</header><div class="body"><div class="wrap">
+   <div class="grid2"><div><label class="f" for="rp-p">Period</label><select id="rp-p" onchange="S.repP=this.value;openReport()">${opts([['week','This week'],['last','Last week'],['4w','Last 4 weeks'],['all','Schedule to date']],S.repP,null)}</select></div>
+   <div><label class="f" for="rp-to">Managers' emails</label><input type="text" id="rp-to" inputmode="email" placeholder="name@cbre.com, …" value="${esc(site.managers||'')}" oninput="data.site.managers=this.value;scheduleSave()"></div></div>
+   <label class="f" for="rp-note">Comments for managers (optional)</label><textarea id="rp-note" placeholder="e.g. Rik off Tuesday, Reds boards moved to next week." oninput="S.repNote=this.value;clearTimeout(S.rpT);S.rpT=setTimeout(()=>{document.getElementById('repprev').innerHTML=reportHtml(reportModel(S.repP),S.repNote)},300)">${esc(S.repNote||'')}</textarea>
+   <div class="row" style="margin-top:12px"><button class="btn primary" onclick="emailReport()">${CLOUD?'Email to managers':'Email summary'}</button><button class="btn" onclick="downloadReport()">Download</button><button class="btn" onclick="printReport()">Print or save as PDF</button><button class="btn" onclick="copyReport()">Copy text</button></div>
+   ${CLOUD?`<label class="tog"><input type="checkbox" ${site.weeklyReport?'checked':''} onchange="data.site.weeklyReport=this.checked;scheduleSave();toast(this.checked?'Weekly email on':'Weekly email off')"> Email this week's report to managers every Monday at 8am</label><p class="hint">Sent by the team backend using the latest figures from the app. It needs the weekly email switched on once in the backend (see the setup guide).</p>`
+     :`<p class="hint">Email summary opens your email app with a text version. Download gives the full report as a file you can attach. Connect to the team backend to send the full report by email, or have it sent every Monday.</p>`}
+   <div id="repprev" style="margin-top:14px;border-radius:8px;box-shadow:0 1px 6px rgba(0,0,0,.12)">${reportHtml(M,S.repNote)}</div>
+  </div></div></div>`;updateSaveBtn();
+}
+const repEmails=()=>String((data.site||{}).managers||'').split(/[,;\s]+/).filter(x=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x));
+async function emailReport(){
+  const to=repEmails(),M=reportModel(S.repP);if(!to.length){toast('Add at least one manager email first');document.getElementById('rp-to')?.focus();return}
+  if(CLOUD){toast('Sending…');try{const j=await api('emailReport',{to:to.join(','),subject:repSubject(M),html:reportHtml(M,S.repNote)});toast('Report emailed to '+plural(j.sent||to.length,'manager'))}catch(e){toast('Could not send: '+e.message)}return}
+  location.href=`mailto:${encodeURIComponent(to.join(','))}?subject=${encodeURIComponent(repSubject(M))}&body=${encodeURIComponent(reportText(M,S.repNote))}`;
+}
+function reportDoc(M){return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(repSubject(M))}</title></head><body style="margin:0;padding:16px;background:#EEF1EE">${reportHtml(M,S.repNote)}</body></html>`}
+function downloadReport(){const M=reportModel(S.repP);download(`DB-progress-${siteName().replace(/[^\w]+/g,'-')}-${today()}.html`,reportDoc(M),'text/html');toast('Report downloaded')}
+function printReport(){let w=document.getElementById('printwrap');if(!w){w=document.createElement('div');w.id='printwrap';document.body.appendChild(w)}w.className='rep';w.innerHTML=reportHtml(reportModel(S.repP),S.repNote);
+  document.body.classList.add('printing');setTimeout(()=>{window.print();setTimeout(()=>{document.body.classList.remove('printing');w.className=''},500)},200)}
+async function copyReport(){try{await navigator.clipboard.writeText(reportText(reportModel(S.repP),S.repNote));toast('Copied. Paste into an email or Teams.')}catch(e){toast('Copy was blocked. Try Download.')}}
+
+/* ============ boot ============ */
+function normalise(){
+  data.maps=data.maps||{};data.custom=data.custom||[];data.customDbs=data.customDbs||[];KV_SECTIONS.forEach(x=>data[x]=data[x]||{});data.kvu=data.kvu||{};data.tomb=data.tomb||{};data.settings=data.settings||{autosave:true};
+  for(const id in data.maps){const m=data.maps[id];if(m.building!==undefined){if(data.mapBuilding[id]===undefined)data.mapBuilding[id]=m.building;delete m.building}m.pins=m.pins||[];m.symbols=m.symbols||[];
+    for(const p of m.pins){normPin(p);if(p.checks.AE&&!p.remedials.length){p.remedials.push({id:uid(),code:'',reg:'',regOther:'',obs:p.checks.AEnotes||'',action:ACTIONS.includes(p.checks.AE)?p.checks.AE:'',status:p.checks.AE==='Completed on site'?'Completed':'Open'});delete p.checks.AE}}}
+  if(!data.engineers||!data.engineers.length)data.engineers=ENG.map((n,i)=>({id:engId(n),name:n,phone:'',email:'',o:i}));
+  const seen={};let i=0;data.engineers=data.engineers.filter(e=>{if(!String(e.id).startsWith('eng_'))e.id=engId(e.name);if(e.o==null)e.o=i;i++;const k=e.name.toLowerCase();if(seen[k])return false;seen[k]=1;return true});
+}
+(async()=>{
+  try{CLOUD=JSON.parse(await sget('dbmap:cloud')||'null')}catch(e){CLOUD=null}
+  try{PENDING=JSON.parse(await sget('dbmap:pending')||'[]')}catch(e){PENDING=[]}
+  const sc=await sget('dbmap:schedule');if(sc){try{loadSchedule(JSON.parse(sc))}catch(e){}}
+  const raw=await sget(KEY);if(raw){try{data=JSON.parse(raw)}catch(e){}}
+  normalise();SNAP=snapOf(dmFlatten(data));
+  rebuildDbs();renderHome();handleHash();
+  if(CLOUD)syncNow(true);
+  setInterval(()=>{if(CLOUD&&document.visibilityState==='visible'&&!dirty&&!(document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)))syncNow(true)},60000);
+  window.addEventListener('online',()=>{if(CLOUD)syncNow(true)});
+  window.addEventListener('hashchange',handleHash);
+  if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+window.addEventListener('resize',()=>{if(S.view!=='map')return;const vp=document.getElementById('vp'),m=curMap();if(!vp||!m)return;S.minZ=Math.min(1,vp.clientHeight/(vp.clientWidth*(m.h/m.w)));setZoom(S.zoom)});
+</script>
+</body>
+</html>
