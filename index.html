@@ -395,18 +395,36 @@ const openRems=p=>(p.remedials||[]).filter(r=>r.status!=='Completed');
 function worstCode(p){const order=['C1','C2','FI','C3'];const cs=openRems(p).map(r=>r.code).filter(Boolean);for(const c of order)if(cs.includes(c))return c;return ''}
 function isBad(f,v){return !!v&&(v==='Not OK'||(f.o===YN&&v==='No')||v==='<1 (fail)'||v==='Fail'||(f.k==='AD'&&v!=='None'&&!v.startsWith('C3')))}
 const isGood=(f,v)=>!!v&&!isBad(f,v)&&v!=='Not tested';
-function rcdDue(p){const c=p.checks||{};if(!c.RCD6date||c.RCD6==='N/A – no RCD')return null;const next=addMonths(c.RCD6date,6);return{next,days:daysTo(next)}}
+/* "Complete & save" archives the filled-in form to p.history and clears p.checks back to just
+   {remindFreq,nextDue} so the board is ready for its next visit (see completeCheck()). Anything that
+   reports a board's CURRENT status (pin colour, signed-off counts, RCD due, exports) must therefore look
+   at the live form when it has anything in it, and otherwise fall back to the most recent history entry
+   — not at p.checks directly, which goes blank the moment a check is completed. */
+function effectiveChecks(p){
+  const c=p.checks||{};
+  const live=FIELDS.some(f=>{const v=c[f.k];return v!==undefined&&v!==''})||!!c.RCD6;
+  if(live)return c;
+  if(p.history&&p.history.length)return p.history[0].checks||{};
+  return c;
+}
+function signedEntries(p){
+  const out=[],c=p.checks||{};
+  const live=FIELDS.some(f=>{const v=c[f.k];return v!==undefined&&v!==''})||!!c.RCD6;
+  if(live&&c.AF)out.push({AF:c.AF,date:c.date});
+  for(const h of p.history||[])if(h.checks&&h.checks.AF)out.push({AF:h.checks.AF,date:h.date});
+  return out;
+}
+function rcdDue(p){const c=effectiveChecks(p);if(!c.RCD6date||c.RCD6==='N/A – no RCD')return null;const next=addMonths(c.RCD6date,6);return{next,days:daysTo(next)}}
 function pinStatus(p){
-  const c=p.checks||{};const filled=FIELDS.filter(f=>c[f.k]);
+  const c=effectiveChecks(p);const filled=FIELDS.filter(f=>c[f.k]);
   const bad=filled.some(f=>isBad(f,c[f.k]))||c.RCD6==='Fail'||['C1','C2','FI'].includes(worstCode(p));
   if(bad)return{k:'fault',c:'var(--red)',l:'Fault recorded'};
   if(c.AF)return{k:'done',c:'var(--ok)',l:'Signed off by '+c.AF};
   if(filled.length)return{k:'prog',c:'var(--amber)',l:`In progress, ${filled.length} of ${FIELDS.length} filled`};
-  if(p.asset&&p.history&&p.history.length)return{k:'todo',c:'var(--grey)',l:'Last checked '+fmt(p.history[0].date)};
   return{k:'todo',c:'var(--grey)',l:p.asset?'Not started':'No board linked yet'};
 }
 function circuitLabel(ci){return `${ci.no?('C'+ci.no):'Circuit'}${ci.desc?' '+ci.desc:''}`}
-function remSummary(p){const rs=p.remedials||[];if(!rs.length)return (p.checks||{}).AEnotes||'';return rs.map(r=>[r.code,r.reg==='Other'?r.regOther:r.reg,r.obs,r.action,r.status==='Completed'?'(completed)':''].filter(Boolean).join(' – ')).join('; ')}
+function remSummary(p){const rs=p.remedials||[];if(!rs.length)return effectiveChecks(p).AEnotes||'';return rs.map(r=>[r.code,r.reg==='Other'?r.regOther:r.reg,r.obs,r.action,r.status==='Completed'?'(completed)':''].filter(Boolean).join(' – ')).join('; ')}
 
 /* ============ state ============ */
 const S={histOpen:null,histSel:null,histQ:'',remSel:new Set(),sym:null,symCable:null,symSteps:[],symSel:null,lastSym:'light',lastTap:null,treeZ:1,view2:'',pinColour:'status',planWk:null,offEng:null,remF:'open',remQ:'',treeB:null,ai:null,adjust:null,editEng:null,view:'home',mapId:null,pinId:null,cableId:null,tab:'board',place:false,pendingAsset:'',locked:true,zoom:1,minZ:1,eng:'',search:'',editCircuit:null,draw:null,showCables:true,calEng:''};
@@ -480,7 +498,7 @@ async function pickMap(inp){
 function exportRows(){
   const rows=[[...HEADERS_AF,'RCD 6-monthly test','RCD test date','RCD next due','Map','Pin','Check date','Circuits','Cables','Photos','Notes','Fed from','Schedule changed']];
   for(const m of allMaps())for(const p0 of [...pinsOf(m.id)].sort((a,b)=>a.num-b.num)){
-    const p=normPin(p0),d=BY_ASSET[p.asset]||{},c=p.checks,w=WEEKS[d.wk]||['',''],r=rcdDue(p);
+    const p=normPin(p0),d=BY_ASSET[p.asset]||{},c=effectiveChecks(p),w=WEEKS[d.wk]||['',''],r=rcdDue(p);
     const vals={...c,AD:p.remedials.length?(CODES.find(x=>x[0]===worstCode(p))?.[1]||'None'):c.AD,AE:remSummary(p)};
     rows.push([d.wk||'',w[0],w[1],d.engineer||'',d.custom?'':(p.asset||''),d.name||'',d.building||buildingOf(m),d.floor||'',d.room||'','','','','',...COLS_NAF.map(k=>vals[k]||''),c.RCD6||'',c.RCD6date||'',r?r.next:'',m.name,p.num,c.date||'',p.circuits.length,p.cables.length,p.photos.length,p.notes||'',parentOf(p.asset)==='SUPPLY'?'Incoming supply':(BY_ASSET[parentOf(p.asset)]||{}).ref||'',d.changed?'Yes':'']);
   }
@@ -522,10 +540,10 @@ function calEvents(eng){
   }
   for(const m of allMaps())for(const p of pinsOf(m.id)){const r=rcdDue(p);if(!r)continue;const d=BY_ASSET[p.asset];if(eng&&d&&d.engineer!==eng)continue;
     const endEx=ymd(new Date(toD(r.next).getTime()+864e5));
-    ev.push({uid:'rcd'+p.id+r.next,title:`RCD 6-monthly test: ${d?d.ref:'Pin '+p.num} (${m.name})`,start:r.next,endEx,desc:`Push-button test of RCDs at ${d?d.ref+', '+d.room:'pin '+p.num}. Last tested ${fmt(p.checks.RCD6date)}.`})}
+    ev.push({uid:'rcd'+p.id+r.next,title:`RCD 6-monthly test: ${d?d.ref:'Pin '+p.num} (${m.name})`,start:r.next,endEx,desc:`Push-button test of RCDs at ${d?d.ref+', '+d.room:'pin '+p.num}. Last tested ${fmt(effectiveChecks(p).RCD6date)}.`})}
   for(const m of allMaps())for(const p of pinsOf(m.id)){const nd=p.checks&&p.checks.nextDue;if(!nd)continue;const d=BY_ASSET[p.asset];if(eng&&d&&d.engineer!==eng)continue;
     const endEx=ymd(new Date(toD(nd).getTime()+864e5));
-    ev.push({uid:'next'+p.id+nd,title:`DB check due: ${d?d.ref:'Pin '+p.num} (${m.name})`,start:nd,endEx,desc:`Routine check due at ${d?d.ref+', '+d.room:'pin '+p.num}. Last checked ${fmt(p.checks.date)}.`})}
+    ev.push({uid:'next'+p.id+nd,title:`DB check due: ${d?d.ref:'Pin '+p.num} (${m.name})`,start:nd,endEx,desc:`Routine check due at ${d?d.ref+', '+d.room:'pin '+p.num}. Last checked ${fmt(effectiveChecks(p).date)}.`})}
   return ev.sort((a,b)=>a.start.localeCompare(b.start));
 }
 function buildIcs(ev,eng){const who=eng&&engByName(eng);
@@ -1042,7 +1060,7 @@ function downloadNextDue(){
   download('db-check-reminder.ics',buildIcs([e]),'text/calendar');toast('Reminder downloaded');
 }
 async function exportBoardXlsx(){
-  const p=curPin(),c=p.checks,m=curMap(),d=BY_ASSET[p.asset]||{};toast('Building spreadsheet…');
+  const p=curPin(),c=effectiveChecks(p),m=curMap(),d=BY_ASSET[p.asset]||{};toast('Building spreadsheet…');
   try{
     await loadScript(XLSX_CDN);
     const r=rcdDue(p),vals={...c,AD:p.remedials.length?(CODES.find(x=>x[0]===worstCode(p))?.[1]||'None'):c.AD,AE:remSummary(p)};
@@ -1832,10 +1850,10 @@ function reportRange(period){
 }
 function reportModel(period){
   const R=reportRange(period),inP=s=>!!s&&s>=R.from&&s<=R.to,wk=currentWeek(),pl=placed();
-  const signed=a=>{const at=pl[a];return !!(at&&at.pin.checks&&at.pin.checks.AF)};
+  const signed=a=>{const at=pl[a];return !!(at&&effectiveChecks(at.pin).AF)};
   const sched=DBS.filter(d=>d.wk),due=sched.filter(d=>d.wk<=wk),overdue=sched.filter(d=>d.wk<wk&&!signed(d.asset));
   const allPins=allMaps().flatMap(m=>pinsOf(m.id).map(p=>({m,p})));
-  const signedInP=allPins.filter(x=>x.p.checks&&x.p.checks.AF&&inP(x.p.checks.date));
+  const signedInP=allPins.filter(x=>signedEntries(x.p).some(e=>inP(e.date)));
   const engs=[...engNames()];if(sched.some(d=>!d.engineer))engs.push('');
   const byEng=engs.map(n=>{const ds=sched.filter(d=>(d.engineer||'')===n),du=ds.filter(d=>d.wk<=wk);
     return{n:n||'Unassigned',total:ds.length,due:du.length,done:du.filter(d=>signed(d.asset)).length,over:ds.filter(d=>d.wk<wk&&!signed(d.asset)).length,period:signedInP.filter(x=>((BY_ASSET[x.p.asset]||{}).engineer||'')===n).length}}).filter(e=>e.total||e.period);
