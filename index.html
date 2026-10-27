@@ -208,6 +208,9 @@ input[type=date]{min-width:0;max-width:100%}
 .sbody{overflow:auto;padding:4px 14px 26px}
 .card{background:var(--paper);border-radius:8px;padding:10px 12px;margin-top:12px;font-size:14px;line-height:1.5}
 .card b{font-size:15px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--paper);border:1.5px solid var(--line);border-radius:16px;padding:5px 6px 5px 12px;font-size:14px}
+.chip button{border:0;background:none;color:var(--muted);font-size:17px;line-height:1;padding:2px 6px;cursor:pointer;border-radius:50%}
+.chip button:hover{background:#E4E9E5;color:var(--ink)}
 .fld{display:grid;grid-template-columns:1fr 150px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid #E4E9E5}
 .fld span{font-size:15px;line-height:1.25}
 .fld select,.fld input{padding:7px 8px}
@@ -339,6 +342,7 @@ const CURVES=['B','C','D','–'];
 const RATINGS=['3','5','6','10','13','16','20','25','32','40','45','50','63','80','100','125','160','200','250'];
 const RCDS=['30 mA RCBO','Via 30 mA RCD','Via 100 mA RCD','Via 300 mA RCD','None'];
 const POWERS=['Sockets – ring','Sockets – radial','Lighting','Emergency lighting','Cooker','Water heater','Hand dryers','Extract fan','Air conditioning','Fire alarm panel','Sub-DB','Main bonding – water','Main bonding – gas','Supplementary bonding','Kitchen equipment','External lighting','Signage','Door access','Data cabinet'];
+const allPowers=()=>[...POWERS,...((data.site&&data.site.customPowers)||[])];
 
 /* ============ storage ============ */
 const KEY='dbmap:data', KIMG='dbmap:img:', KFILE='dbmap:diag:';
@@ -505,8 +509,8 @@ function exportRows(){
   return rows;
 }
 function circuitRows(){
-  const rows=[['Map','Pin','DB ref','Asset Code','Circuit','Description','Type','Device','Curve','Rating (A)','RCD','Cable','Size (mm²)']];
-  for(const m of allMaps())for(const p of pinsOf(m.id)){const d=BY_ASSET[p.asset]||{};for(const ci of p.circuits||[])rows.push([m.name,p.num,d.ref||'',d.custom?'':(p.asset||''),ci.no,ci.desc,CT[ci.type]?.l||'',ci.device,ci.curve,ci.rating,ci.rcd,ci.cable,ci.size])}
+  const rows=[['Map','Pin','DB ref','Asset Code','Circuit','Description','Type','Device','Curve','Rating (A)','RCD','Cable','Size (mm²)','CPC / earth (mm²)']];
+  for(const m of allMaps())for(const p of pinsOf(m.id)){const d=BY_ASSET[p.asset]||{};for(const ci of p.circuits||[])rows.push([m.name,p.num,d.ref||'',d.custom?'':(p.asset||''),ci.no,ci.desc,CT[ci.type]?.l||'',ci.device,ci.curve,ci.rating,ci.rcd,ci.cable,ci.size,ci.cpc])}
   return rows;
 }
 const toCsv=rows=>'\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');
@@ -586,7 +590,7 @@ async function renderMap(focus,tab){
   img.onload=()=>{S.minZ=Math.min(1,vp.clientHeight/(vp.clientWidth*(m.h/m.w)));S.zoom=S.minZ;document.getElementById('cv').style.width=(vp.clientWidth*S.zoom)+'px';drawAll();bindMap();if(focus){openPin(focus,tab||'board');centerOn(focus)}};
   img.src=src;
 }
-function leaveMap(){S.draw=null;S.adjust=null;S.sym=null;S.symSel=null;renderHome()}
+function leaveMap(){S.draw=null;S.adjust=null;S.sym=null;S.symSel=null;openMaps()}
 function drawLegend(){
   const el=document.getElementById('legend');if(!el)return;
   const mode=`<button onclick="S.pinColour=S.pinColour==='status'?'engineer':'status';drawLegend();drawPins()">${S.pinColour==='status'?'Colour by engineer':'Colour by status'}</button>`;
@@ -862,10 +866,10 @@ function renderCircuits(){
   const sorted=[...p.circuits].sort((a,b)=>String(a.no).localeCompare(String(b.no),undefined,{numeric:true}));
   let h=`<h3>Cables on the map</h3>`;
   h+=p.cables.map(cb=>{const ci=p.circuits.find(c=>c.id===cb.circuit),t=CT[cb.type]||CT.other,to=cb.to&&pinsOf(S.mapId).find(x=>x.id===cb.to);
-    return `<button class="item" onclick="openCable('${p.id}','${cb.id}')"><i class="sw" style="background:${cb.type==='bonding'?`repeating-linear-gradient(180deg,${t.c} 0 6px,#F2C400 6px 12px)`:t.c}"></i><span><b>${esc(ci?circuitLabel(ci):(cb.powers||'Cable'))}</b><br>${esc([cb.cable,cb.size?cb.size+' mm²':''].filter(Boolean).join(', ')||'Details not set')}${to?', to pin '+esc(to.num):''}${symCounts(cb.id)?'<br>'+esc(symCounts(cb.id)):''}</span><em>${esc(t.l)}</em></button>`}).join('')||'<p class="hint" style="margin-top:2px">No cables drawn yet.</p>';
+    return `<button class="item" onclick="openCable('${p.id}','${cb.id}')"><i class="sw" style="background:${cb.type==='bonding'?`repeating-linear-gradient(180deg,${t.c} 0 6px,#F2C400 6px 12px)`:t.c}"></i><span><b>${esc(ci?circuitLabel(ci):(cb.powers||'Cable'))}</b><br>${esc([cb.cable,cb.size?cb.size+' mm²':'',cb.cpc?'CPC '+cb.cpc+' mm²':''].filter(Boolean).join(', ')||'Details not set')}${to?', to pin '+esc(to.num):''}${symCounts(cb.id)?'<br>'+esc(symCounts(cb.id)):''}</span><em>${esc(t.l)}</em></button>`}).join('')||'<p class="hint" style="margin-top:2px">No cables drawn yet.</p>';
   h+=`<button class="btn primary wide" style="margin-top:10px" onclick="startDraw()">Draw a cable from this board</button>`;
   h+=`<h3>Circuit schedule</h3>`+aiBlock();
-  h+=sorted.map(ci=>S.editCircuit===ci.id?circuitForm(ci):`<button class="item" onclick="S.editCircuit='${ci.id}';renderCircuits()"><i class="sw" style="background:${(CT[ci.type]||CT.other).c}"></i><span><b>${esc(ci.no?'C'+ci.no:'–')} ${esc(ci.desc||'No description')}</b><br>${esc([ci.curve&&ci.curve!=='–'?ci.curve+(ci.rating||''):ci.rating?ci.rating+' A':'',ci.device,ci.rcd&&ci.rcd!=='None'?ci.rcd:'',ci.cable,ci.size?ci.size+' mm²':''].filter(Boolean).join(', '))}</span></button>`).join('')||'<p class="hint" style="margin-top:2px">No circuits added yet.</p>';
+  h+=sorted.map(ci=>S.editCircuit===ci.id?circuitForm(ci):`<button class="item" onclick="S.editCircuit='${ci.id}';renderCircuits()"><i class="sw" style="background:${(CT[ci.type]||CT.other).c}"></i><span><b>${esc(ci.no?'C'+ci.no:'–')} ${esc(ci.desc||'No description')}</b><br>${esc([ci.curve&&ci.curve!=='–'?ci.curve+(ci.rating||''):ci.rating?ci.rating+' A':'',ci.device,ci.rcd&&ci.rcd!=='None'?ci.rcd:'',ci.cable,ci.size?ci.size+' mm²':'',ci.cpc?'CPC '+ci.cpc+' mm²':''].filter(Boolean).join(', '))}</span></button>`).join('')||'<p class="hint" style="margin-top:2px">No circuits added yet.</p>';
   if(S.editCircuit==='new')h+=circuitForm({id:'new',type:'power',device:'MCB',curve:'B',rcd:'None'});
   else h+=`<button class="btn wide" style="margin-top:10px" onclick="S.editCircuit='new';renderCircuits()">+ Add circuit</button>`;
   document.getElementById('sbody').innerHTML=h;
@@ -877,15 +881,15 @@ function circuitForm(ci){
    <label class="f" for="ci-desc">What it powers</label><input type="text" id="ci-desc" list="powers" value="${esc(ci.desc||'')}" placeholder="e.g. Kitchen sockets">
    <div class="grid3"><div><label class="f" for="ci-dev">Device</label><select id="ci-dev">${opts(DEVICES,ci.device,null)}</select></div><div><label class="f" for="ci-curve">Curve</label><select id="ci-curve">${opts(CURVES,ci.curve,null)}</select></div><div><label class="f" for="ci-rat">Rating (A)</label><select id="ci-rat">${opts(RATINGS,ci.rating)}</select></div></div>
    <label class="f" for="ci-rcd">RCD protection</label><select id="ci-rcd">${opts(RCDS,ci.rcd,null)}</select>
-   <div class="grid2"><div><label class="f" for="ci-cab">Cable type</label><select id="ci-cab">${opts(CABLES,ci.cable)}</select></div><div><label class="f" for="ci-size">Size (mm²)</label><select id="ci-size">${opts(SIZES,ci.size)}</select></div></div>
-   <datalist id="powers">${POWERS.map(x=>`<option value="${esc(x)}">`).join('')}</datalist>
+   <div class="grid3"><div><label class="f" for="ci-cab">Cable type</label><select id="ci-cab">${opts(CABLES,ci.cable)}</select></div><div><label class="f" for="ci-size">Size (mm²)</label><select id="ci-size">${opts(SIZES,ci.size)}</select></div><div><label class="f" for="ci-cpc">CPC / earth (mm²)</label><select id="ci-cpc">${opts(SIZES,ci.cpc)}</select></div></div>
+   <datalist id="powers">${allPowers().map(x=>`<option value="${esc(x)}">`).join('')}</datalist>
    <div class="row" style="margin-top:12px"><button class="btn primary" onclick="saveCircuit('${ci.id}')">${ci.id==='new'?'Add circuit':'Save circuit'}</button><button class="btn" onclick="S.editCircuit=null;renderCircuits()">Cancel</button>${ci.id!=='new'?`<button class="btn danger" onclick="armed(this,()=>deleteCircuit('${ci.id}'))">Delete</button>`:''}</div></div>`;
 }
 function saveCircuit(id){
   const p=curPin(),v=k=>document.getElementById(k).value;
-  const vals={no:v('ci-no').trim(),type:v('ci-type'),desc:v('ci-desc').trim(),device:v('ci-dev'),curve:v('ci-curve'),rating:v('ci-rat'),rcd:v('ci-rcd'),cable:v('ci-cab'),size:v('ci-size')};
+  const vals={no:v('ci-no').trim(),type:v('ci-type'),desc:v('ci-desc').trim(),device:v('ci-dev'),curve:v('ci-curve'),rating:v('ci-rat'),rcd:v('ci-rcd'),cable:v('ci-cab'),size:v('ci-size'),cpc:v('ci-cpc')};
   if(id==='new')p.circuits.push({id:uid(),...vals});else Object.assign(p.circuits.find(c=>c.id===id),vals);
-  if(id!=='new')p.cables.filter(cb=>cb.circuit===id).forEach(cb=>Object.assign(cb,{type:vals.type,cable:vals.cable||cb.cable,size:vals.size||cb.size,powers:vals.desc||cb.powers}));
+  if(id!=='new')p.cables.filter(cb=>cb.circuit===id).forEach(cb=>Object.assign(cb,{type:vals.type,cable:vals.cable||cb.cable,size:vals.size||cb.size,cpc:vals.cpc||cb.cpc,powers:vals.desc||cb.powers}));
   S.editCircuit=null;scheduleSave();renderSheet();drawAll();toast(id==='new'?'Circuit added':'Circuit saved');
 }
 function deleteCircuit(id){const p=curPin();p.circuits=p.circuits.filter(c=>c.id!==id);p.cables.forEach(cb=>{if(cb.circuit===id)cb.circuit=''});S.editCircuit=null;scheduleSave();renderSheet();drawAll()}
@@ -951,8 +955,8 @@ function renderCableSheet(el,p){
    <label class="f" for="cb-ci">Circuit in ${esc(d?d.ref:'this board')}</label><select id="cb-ci" onchange="cableCircuit(this.value)">${opt('','Not linked to a circuit',cb.circuit)}${p.circuits.map(ci=>opt(ci.id,circuitLabel(ci),cb.circuit)).join('')}</select>
    ${p.circuits.length?'':'<p class="hint">Add circuits on the Circuits tab to pick them here.</p>'}
    <label class="f" for="cb-type">Circuit type</label><select id="cb-type" onchange="setCab('type',this.value)">${opts(CTYPES.map(c=>[c[0],c[1]]),cb.type,'Select…')}</select>
-   <div class="grid2"><div><label class="f" for="cb-cab">Cable type</label><select id="cb-cab" onchange="setCab('cable',this.value)">${opts(CABLES,cb.cable)}</select></div><div><label class="f" for="cb-size">Size (mm²)</label><select id="cb-size" onchange="setCab('size',this.value)">${opts(SIZES,cb.size)}</select></div></div>
-   <label class="f" for="cb-pow">What it powers</label><input type="text" id="cb-pow" list="powers2" value="${esc(cb.powers||'')}" oninput="setCab('powers',this.value)"><datalist id="powers2">${POWERS.map(x=>`<option value="${esc(x)}">`).join('')}</datalist>
+   <div class="grid3"><div><label class="f" for="cb-cab">Cable type</label><select id="cb-cab" onchange="setCab('cable',this.value)">${opts(CABLES,cb.cable)}</select></div><div><label class="f" for="cb-size">Size (mm²)</label><select id="cb-size" onchange="setCab('size',this.value)">${opts(SIZES,cb.size)}</select></div><div><label class="f" for="cb-cpc">CPC / earth (mm²)</label><select id="cb-cpc" onchange="setCab('cpc',this.value)">${opts(SIZES,cb.cpc)}</select></div></div>
+   <label class="f" for="cb-pow">What it powers</label><input type="text" id="cb-pow" list="powers2" value="${esc(cb.powers||'')}" oninput="setCab('powers',this.value)"><datalist id="powers2">${allPowers().map(x=>`<option value="${esc(x)}">`).join('')}</datalist>
    <div class="card">${symCounts(cb.id)?'On this cable: '+esc(symCounts(cb.id)):'No lights or points on this cable yet.'}<br><button class="btn small primary" style="margin-top:8px" onclick="startSyms('${defKind(cb.type)}',{pin:'${p.id}',cab:'${cb.id}'})">Add points to this cable</button></div>
    <label class="f" for="cb-notes">Notes</label><textarea id="cb-notes" placeholder="Route, containment, length" oninput="setCab('notes',this.value)">${esc(cb.notes||'')}</textarea>
    <div class="row" style="margin-top:14px"><button class="btn small" onclick="startAdjust()">Adjust route</button><button class="btn small" onclick="startDraw('${cb.id}')">Redraw route</button><button class="btn small danger" onclick="armed(this,deleteCable)">Delete cable</button></div>
@@ -961,8 +965,8 @@ function renderCableSheet(el,p){
 }
 function curCable(){return curPin().cables.find(c=>c.id===S.cableId)}
 function setCab(k,v){const cb=curCable();cb[k]=v;scheduleSave();if(k==='type'||k==='size')drawCables();if(k==='type'){const b=document.querySelector('.sheet .bign'),t=CT[v]||CT.other;if(b)b.style.background=t.c}}
-function cableCircuit(id){const p=curPin(),cb=curCable(),ci=p.circuits.find(c=>c.id===id);cb.circuit=id;if(ci){Object.assign(cb,{type:ci.type||cb.type,cable:ci.cable||cb.cable,size:ci.size||cb.size,powers:ci.desc||cb.powers});
-  const set=(i,v)=>{const e=document.getElementById(i);if(e)e.value=v||''};set('cb-type',cb.type);set('cb-cab',cb.cable);set('cb-size',cb.size);set('cb-pow',cb.powers);
+function cableCircuit(id){const p=curPin(),cb=curCable(),ci=p.circuits.find(c=>c.id===id);cb.circuit=id;if(ci){Object.assign(cb,{type:ci.type||cb.type,cable:ci.cable||cb.cable,size:ci.size||cb.size,cpc:ci.cpc||cb.cpc,powers:ci.desc||cb.powers});
+  const set=(i,v)=>{const e=document.getElementById(i);if(e)e.value=v||''};set('cb-type',cb.type);set('cb-cab',cb.cable);set('cb-size',cb.size);set('cb-cpc',cb.cpc);set('cb-pow',cb.powers);
   const b=document.querySelector('.sheet .bign');if(b)b.style.background=(CT[cb.type]||CT.other).c;toast('Filled from '+circuitLabel(ci))}
   scheduleSave();drawCables()}
 function deleteCable(){const p=curPin();p.cables=p.cables.filter(c=>c.id!==S.cableId);S.cableId=null;S.tab='circuits';scheduleSave();renderSheet();drawAll()}
@@ -1015,19 +1019,34 @@ function openHistory(){
   document.getElementById('ovl').innerHTML=`<div class="ov"><header><button class="hbtn" onclick="closeOv()">‹ Back</button><h1>Previous checks</h1></header><div class="body"><div class="wrap">
    <p class="sitebar" style="margin-top:0">${esc(d?d.ref:'Pin '+p.num)}${d?', '+esc(d.building)+', '+esc(d.room):''}</p>
    ${p.history.map((hEntry,i)=>{const hc=hEntry.checks,bad=FIELDS.some(f=>isBad(f,hc[f.k]))||hc.RCD6==='Fail',col=bad?'var(--red)':hc.AF?'var(--ok)':'var(--grey)';
-     return `<button class="hrow" style="border-left-color:${col}" onclick="S.histOpen=S.histOpen==='${hEntry.id}'?null:'${hEntry.id}';openHistory()"><span><b>${esc(fmt(hEntry.date))}</b><small>${hc.AF?'Signed off by '+esc(hc.AF):'Not signed off'}${hEntry.remedials.length?', '+plural(hEntry.remedials.length,'remedial'):''}</small></span></button>
+     return `<button class="hrow" style="border-left-color:${col}" onclick="S.histOpen=S.histOpen==='${hEntry.id}'?null:'${hEntry.id}';S.histEdit=null;openHistory()"><span><b>${esc(fmt(hEntry.date))}</b><small>${hc.AF?'Signed off by '+esc(hc.AF):'Not signed off'}${hEntry.remedials.length?', '+plural(hEntry.remedials.length,'remedial'):''}</small></span></button>
      ${S.histOpen===hEntry.id?historyDetail(hEntry):''}`}).join('')||'<p class="hint">No previous checks yet.</p>'}
    </div></div></div>`;
 }
 function historyDetail(hEntry){
-  const hc=hEntry.checks;
+  const hc=hEntry.checks,p=curPin(),m=curMap();
+  if(S.histEdit===hEntry.id){
+    return `<div class="edit hview" style="margin:-2px 0 12px">${histFieldsForm(hc,m.id,p.id,hEntry.id)}
+     <div class="row" style="margin-top:10px"><button class="btn small primary" onclick="S.histEdit=null;openHistory()">Done editing</button><button class="btn small danger" onclick="armed(this,()=>deleteHistory('${hEntry.id}'))">Delete this record</button></div></div>`;
+  }
   const rows=FIELDS.map(f=>hc[f.k]?`<div class="fld"><span>${esc(f.l)}</span><b style="font-size:14px">${esc(hc[f.k])}</b></div>`:'').join('')
    +(hc.RCD6?`<div class="fld"><span>RCD 6-monthly test</span><b style="font-size:14px">${esc(hc.RCD6)}${hc.RCD6date?' ('+fmt(hc.RCD6date)+')':''}</b></div>`:'');
   const rems=hEntry.remedials.map(r=>`<div class="card"><b>${esc(r.code||'No code')}</b> ${esc(r.reg||'')}<br>${esc(r.obs||'')}${r.action?'<br>Action: '+esc(r.action):''}<br><span class="muted">${esc(r.status)}</span></div>`).join('');
   return `<div class="edit hview" style="margin:-2px 0 12px">${rows||'<p class="hint" style="margin:4px 0">No checklist items were filled in.</p>'}${rems?'<div class="pg" style="margin-top:10px">Remedials raised at this check</div>'+rems:''}
-   <button class="btn small danger" style="margin-top:10px" onclick="armed(this,()=>deleteHistory('${hEntry.id}'))">Delete this record</button></div>`;
+   <div class="row" style="margin-top:10px"><button class="btn small" onclick="S.histEdit='${hEntry.id}';openHistory()">Edit this record</button><button class="btn small danger" onclick="armed(this,()=>deleteHistory('${hEntry.id}'))">Delete this record</button></div></div>`;
 }
-function deleteHistory(id){const p=curPin();p.history=p.history.filter(x=>x.id!==id);S.histOpen=null;scheduleSave();openHistory()}
+function deleteHistory(id){const p=curPin();p.history=p.history.filter(x=>x.id!==id);S.histOpen=null;S.histEdit=null;scheduleSave();openHistory()}
+function setHistField(mid,pid,hid,k,v){const p=pinsOf(mid).find(x=>x.id===pid);if(!p)return;const h=(p.history||[]).find(x=>x.id===hid);if(!h)return;h.checks=h.checks||{};h.checks[k]=v;if(k==='date')h.date=v;scheduleSave()}
+function histFieldsForm(hc,mid,pid,hid){
+  let h=FIELDS.map(f=>{const v=hc[f.k]||'';
+    return `<div class="fld"><span>${esc(f.l)}</span>${f.t==='text'
+      ?`<input type="text" inputmode="decimal" placeholder="${esc(f.ph)}" value="${esc(v)}" oninput="setHistField('${mid}','${pid}','${hid}','${f.k}',this.value)" aria-label="${esc(f.l)}">`
+      :`<select onchange="setHistField('${mid}','${pid}','${hid}','${f.k}',this.value)" aria-label="${esc(f.l)}">${f.eng?engOpts(v,'–'):opt('','–',v)+f.o.map(o=>opt(o,o,v)).join('')}</select>`}</div>`}).join('');
+  h+=`<div class="fld"><span>RCD 6-monthly test</span><select onchange="setHistField('${mid}','${pid}','${hid}','RCD6',this.value)" aria-label="RCD 6-monthly test">${opts(RCD6,hc.RCD6||'')}</select></div>
+   <div class="fld"><span>RCD test date</span><input type="date" value="${esc(hc.RCD6date||'')}" onchange="setHistField('${mid}','${pid}','${hid}','RCD6date',this.value)" aria-label="RCD test date"></div>
+   <div class="fld"><span>Check date</span><input type="date" value="${esc(hc.date||'')}" onchange="setHistField('${mid}','${pid}','${hid}','date',this.value)" aria-label="Check date"></div>`;
+  return h;
+}
 function remedialSection(p){
   let h=`<div style="margin:6px 0 4px"><b style="font-size:15px">Remedial actions</b></div>`;
   h+=p.remedials.map((r,i)=>{const col=r.status==='Completed'?'var(--ok)':r.code==='C3'?'var(--amber)':r.code?'var(--red)':'var(--grey)';
@@ -1066,7 +1085,7 @@ async function exportBoardXlsx(){
     const r=rcdDue(p),vals={...c,AD:p.remedials.length?(CODES.find(x=>x[0]===worstCode(p))?.[1]||'None'):c.AD,AE:remSummary(p)};
     const checkRows=[['Field','Value'],['Map',m.name],['Pin',p.num],['DB ref',d.ref||''],['Asset code',d.custom?'':(d.asset||'')],['Building',d.building||buildingOf(m)],['Floor',d.floor||''],['Room',d.room||''],['Engineer',d.engineer||''],
       ['Check date',c.date||''],...FIELDS.map(f=>[f.l,vals[f.k]||'']),['RCD 6-monthly test',c.RCD6||''],['RCD test date',c.RCD6date||''],['RCD next due',r?r.next:''],['Next check due',c.nextDue||''],['Notes',p.notes||'']];
-    const circRows=[['Circuit','Description','Type','Device','Curve','Rating (A)','RCD','Cable','Size (mm²)'],...p.circuits.map(ci=>[ci.no,ci.desc,(CT[ci.type]||{}).l||ci.type,ci.device,ci.curve,ci.rating,ci.rcd,ci.cable,ci.size])];
+    const circRows=[['Circuit','Description','Type','Device','Curve','Rating (A)','RCD','Cable','Size (mm²)','CPC / earth (mm²)'],...p.circuits.map(ci=>[ci.no,ci.desc,(CT[ci.type]||{}).l||ci.type,ci.device,ci.curve,ci.rating,ci.rcd,ci.cable,ci.size,ci.cpc])];
     const remRows2=[['Code','Regulation','Observation','Action','Status','Raised','Quote (£)','Test result','Completed date','Completed by','Job notes'],...p.remedials.map(rr=>[rr.code,rr.reg==='Other'?rr.regOther:rr.reg,rr.obs,rr.action,rr.status||'Open',rr.raised||'',rr.quote||'',rr.testResult||'',rr.completedDate||'',rr.completedBy||'',rr.jobNotes||''])];
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(checkRows),'Check');
@@ -1320,20 +1339,24 @@ function openCheckHistory(){
   h+=venues.map(v=>{const items=groups[v];
     return `<div class="venue"><h3>${esc(v)}</h3><div class="sub">${plural(items.length,'check')}</div>`+
      items.map(({m,p,h:hEntry})=>{const d=BY_ASSET[p.asset]||{},hc=hEntry.checks,bad=FIELDS.some(f=>isBad(f,hc[f.k]))||hc.RCD6==='Fail',col=bad?'var(--red)':hc.AF?'var(--ok)':'var(--grey)';
-       return `<button class="hrow" style="border-left-color:${col}" onclick="S.histSel=S.histSel==='${hEntry.id}'?null:'${hEntry.id}';openCheckHistory()"><span><b>${esc(fmt(hEntry.date))}</b><small>${esc(d.ref||'Pin '+p.num)} – ${esc(d.building||m.name)}${d.room?', '+esc(d.room):''}${hEntry.remedials.length?', '+plural(hEntry.remedials.length,'remedial'):''}</small></span></button>
+       return `<button class="hrow" style="border-left-color:${col}" onclick="S.histSel=S.histSel==='${hEntry.id}'?null:'${hEntry.id}';S.histEdit=null;openCheckHistory()"><span><b>${esc(fmt(hEntry.date))}</b><small>${esc(d.ref||'Pin '+p.num)} – ${esc(d.building||m.name)}${d.room?', '+esc(d.room):''}${hEntry.remedials.length?', '+plural(hEntry.remedials.length,'remedial'):''}</small></span></button>
         ${S.histSel===hEntry.id?historyDetailX(m,p,hEntry):''}`}).join('')+`</div>`}).join('')||`<p class="hint">${all.length?'Nothing matches this search.':'No completed checks yet. Finish a check on a board, and it will appear here.'}</p>`;
   h+=`</div></div></div></div>`;
   document.getElementById('ovl').innerHTML=h;updateSaveBtn();const nb=document.querySelector('#ovl .body');if(nb)nb.scrollTop=top;
 }
 function historyDetailX(m,p,hEntry){
   const hc=hEntry.checks;
+  if(S.histEdit===hEntry.id){
+    return `<div class="edit hview" style="margin:-2px 0 12px">${histFieldsForm(hc,m.id,p.id,hEntry.id)}
+     <div class="row" style="margin-top:10px"><button class="btn small primary" onclick="S.histEdit=null;openCheckHistory()">Done editing</button><button class="btn small" onclick="S.view2='';openMap('${m.id}','${p.id}','checks')">Open this board</button><button class="btn small danger" onclick="armed(this,()=>deleteHistX('${m.id}','${p.id}','${hEntry.id}'))">Delete this record</button></div></div>`;
+  }
   const rows=FIELDS.map(f=>hc[f.k]?`<div class="fld"><span>${esc(f.l)}</span><b style="font-size:14px">${esc(hc[f.k])}</b></div>`:'').join('')
    +(hc.RCD6?`<div class="fld"><span>RCD 6-monthly test</span><b style="font-size:14px">${esc(hc.RCD6)}${hc.RCD6date?' ('+fmt(hc.RCD6date)+')':''}</b></div>`:'');
   const rems=hEntry.remedials.map(r=>`<div class="card"><b>${esc(r.code||'No code')}</b> ${esc(r.reg||'')}<br>${esc(r.obs||'')}${r.action?'<br>Action: '+esc(r.action):''}<br><span class="muted">${esc(r.status)}</span></div>`).join('');
   return `<div class="edit hview" style="margin:-2px 0 12px">${rows||'<p class="hint" style="margin:4px 0">No checklist items were filled in.</p>'}${rems?'<div class="pg" style="margin-top:10px">Remedials raised at this check</div>'+rems:''}
-   <div class="row" style="margin-top:10px"><button class="btn small" onclick="S.view2='';openMap('${m.id}','${p.id}','checks')">Open this board</button><button class="btn small danger" onclick="armed(this,()=>deleteHistX('${m.id}','${p.id}','${hEntry.id}'))">Delete this record</button></div></div>`;
+   <div class="row" style="margin-top:10px"><button class="btn small" onclick="S.histEdit='${hEntry.id}';openCheckHistory()">Edit this record</button><button class="btn small" onclick="S.view2='';openMap('${m.id}','${p.id}','checks')">Open this board</button><button class="btn small danger" onclick="armed(this,()=>deleteHistX('${m.id}','${p.id}','${hEntry.id}'))">Delete this record</button></div></div>`;
 }
-function deleteHistX(mid,pid,hid){const p=pinsOf(mid).find(x=>x.id===pid);if(!p)return;p.history=(p.history||[]).filter(x=>x.id!==hid);S.histSel=null;scheduleSave();openCheckHistory()}
+function deleteHistX(mid,pid,hid){const p=pinsOf(mid).find(x=>x.id===pid);if(!p)return;p.history=(p.history||[]).filter(x=>x.id!==hid);S.histSel=null;S.histEdit=null;scheduleSave();openCheckHistory()}
 
 function historyRows(){
   const rows=[['Map','Pin','DB ref','Asset Code','Building','Room',...HEADERS_AF.slice(13),'Remedials raised']];
@@ -1744,12 +1767,17 @@ function openSite(){
    <label class="btn">Import schedule spreadsheet<input type="file" accept=".xlsx,.xls,.csv" hidden onchange="importSchedule(this)"></label>
    <p class="hint">Use the same layout as the Engineer Assignments sheet: columns for Wk, W/C, W/E, Engineer, Asset Code, DB Name, Building, Floor and Room. ${CLOUD?'The new schedule is shared with the whole site.':''}</p>
    <div id="schedprev"></div>
+   <h2>"What it powers" suggestions</h2><p class="hint" style="margin-top:0">These show up alongside the built-in list when typing what a circuit or cable powers.</p>
+   <div class="row">${(site.customPowers||[]).map(x=>`<span class="chip">${esc(x)}<button onclick="deletePower('${esc(x).replace(/'/g,"\\'")}')" aria-label="Remove ${esc(x)}">×</button></span>`).join('')||'<p class="hint" style="margin:0">None added yet.</p>'}</div>
+   <div class="row" style="margin-top:8px"><input type="text" id="pw-new" placeholder="e.g. Chlorine dosing pump" onkeydown="if(event.key==='Enter'){addPower();event.preventDefault()}"><button class="btn" onclick="addPower()">Add</button></div>
    <h2>Site pack</h2><p class="hint" style="margin-top:0">A site pack holds the maps, schedule, engineers and all board data in one file. Use it to move a site into the team app or set up a new site.</p>
    <div class="row" style="margin-top:8px"><button class="btn" onclick="exportPack()">Export site pack</button><label class="btn">Import site pack<input type="file" accept=".json,application/json" hidden onchange="importPack(this)"></label></div>
    <p class="hint">Board photos and diagrams aren't included in a pack. They stay on this device${CLOUD?' and in the team backend':''}.</p>
   </div></div></div>`;
   document.getElementById('ovl').innerHTML=h;updateSaveBtn();
 }
+function addPower(){const inp=document.getElementById('pw-new'),v=inp.value.trim();if(!v)return;data.site.customPowers=data.site.customPowers||[];if(!data.site.customPowers.some(x=>x.toLowerCase()===v.toLowerCase())&&!POWERS.some(x=>x.toLowerCase()===v.toLowerCase())){data.site.customPowers.push(v);scheduleSave()}else toast('Already in the list');openSite()}
+function deletePower(v){data.site.customPowers=(data.site.customPowers||[]).filter(x=>x!==v);scheduleSave();openSite()}
 async function connectCloud(){
   const url=document.getElementById('cl-url').value.trim(),site=document.getElementById('cl-site').value.trim().toUpperCase(),pin=document.getElementById('cl-pin').value.trim();
   if(!/^https:\/\/script\.google\.com\/.+\/exec/.test(url)){toast('Paste the web app link ending in /exec');return}
@@ -1930,7 +1958,7 @@ async function copyReport(){try{await navigator.clipboard.writeText(reportText(r
 
 /* ============ boot ============ */
 function normalise(){
-  data.maps=data.maps||{};data.custom=data.custom||[];data.customDbs=data.customDbs||[];KV_SECTIONS.forEach(x=>data[x]=data[x]||{});data.kvu=data.kvu||{};data.tomb=data.tomb||{};data.settings=data.settings||{autosave:true};
+  data.maps=data.maps||{};data.custom=data.custom||[];data.customDbs=data.customDbs||[];KV_SECTIONS.forEach(x=>data[x]=data[x]||{});data.kvu=data.kvu||{};data.tomb=data.tomb||{};data.settings=data.settings||{autosave:true};data.site.customPowers=data.site.customPowers||[];
   for(const id in data.maps){const m=data.maps[id];if(m.building!==undefined){if(data.mapBuilding[id]===undefined)data.mapBuilding[id]=m.building;delete m.building}m.pins=m.pins||[];m.symbols=m.symbols||[];
     for(const p of m.pins){normPin(p);if(p.checks.AE&&!p.remedials.length){p.remedials.push({id:uid(),code:'',reg:'',regOther:'',obs:p.checks.AEnotes||'',action:ACTIONS.includes(p.checks.AE)?p.checks.AE:'',status:p.checks.AE==='Completed on site'?'Completed':'Open'});delete p.checks.AE}}}
   if(!data.engineers||!data.engineers.length)data.engineers=ENG.map((n,i)=>({id:engId(n),name:n,phone:'',email:'',o:i}));
